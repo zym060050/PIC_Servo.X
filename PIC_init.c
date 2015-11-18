@@ -21,7 +21,7 @@ void Initialize(void)
     ADCON1 = 0x0F;
     
     // status LED on
-    LED_STATUS = 1;
+    LED_STATUS = LED_ON;
 #else
     //new board
     PORTA = 0x1F;
@@ -39,7 +39,7 @@ void Initialize(void)
     
     
     // RS485 read standby
-    RS485_DE = DISABLE_ACTIVE_HIGH;
+    RS485_DE = DISABLE;
     
     
 	// Initialize Serial Port
@@ -53,7 +53,7 @@ void Initialize(void)
     // Baud rate = Fosc/(16*(SPBRG+1))
     //SPBRG = ((_XTAL_FREQ/16)/RS485_BAUDRATE)-1;
     /*For BRG16 == 1*/
-    BRG16 = 1;
+    BRG16 = SET;
 #ifdef BREAD_BOARD_SETUP
     /*19200: 259*/
     SPBRGH = 0x01;
@@ -80,7 +80,7 @@ void Initialize(void)
     // Set period register for 128us, (128*(_XTAL_FREQ/4)/16)/1000000)-1;
     PR2 = 0x4F;
     //Clear timer 2 register
-    TMR2 = 0;
+    TMR2 = CLEAR;
       
     //initialize PWM module
     CCP1CON = 0x0C;
@@ -96,10 +96,10 @@ void Initialize(void)
     //Start count 64286 -> 10ms
     TMR3L = T3_START_COUNT_LO;
     TMR3H = T3_START_COUNT_HI;        
-    TMR3IE = 1;           
-    IPEN = 1;
+    TMR3IE = ENABLE;           
+    IPEN = ENABLE;
     TMR3IP = 0;  //must set as low priority interrupt.         
-    TMR3IF = 0;
+    TMR3IF = CLEAR;
     
 	// Start System ...
          
@@ -113,7 +113,7 @@ void Initialize(void)
     
     
     // Start timer 2 (PWM)
-    TMR2ON = ENABLE_ACTIVE_HIGH;
+    TMR2ON = ENABLE;
     
     
 #ifndef NEW_PCB_BOARD
@@ -122,18 +122,18 @@ void Initialize(void)
     {
         __delay_ms(19);
     }
-    LED_STATUS = DISABLE_ACTIVE_HIGH;
+    LED_STATUS = LED_OFF;
 #endif
     
     
     // Enable serial port receiver
-    TXEN = 1;
-    CREN = ENABLE_ACTIVE_HIGH;
-    RCIE = 0;
+    TXEN = ENABLE;
+    CREN = ENABLE;
+    RCIE = DISABLE;
     // Enable pripheral Interrupts
-    PEIE = ENABLE_ACTIVE_HIGH;
+    PEIE = ENABLE;
     //Enable all longerrupts
-    GIE = ENABLE_ACTIVE_HIGH;
+    GIE = ENABLE;
     
     
     // clear WDT

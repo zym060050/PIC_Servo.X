@@ -4,16 +4,16 @@
  code to test TX
  * 
  *    	// Enable serial port transmitter
-   		TXEN = ENABLE_ACTIVE_HIGH;
+   		TXEN = ENABLE;
     	// enable RS485 transmitter
-   		RS485_DE = ENABLE_ACTIVE_HIGH;
+   		RS485_DE = ENABLE;
 			while (!TXIF);
 			TXREG = 0x6F;
 			while (!TRMT);						
   		// Disable serial port transmitter
-   		TXEN = DISABLE_ACTIVE_HIGH;
+   		TXEN = DISABLE;
      	// disable RS485 transmitter
-   		RS485_DE = DISABLE_ACTIVE_HIGH;
+   		RS485_DE = DISABLE;
 
  * 
  */
@@ -22,21 +22,21 @@
 void serial_Putch(unsigned char byte)
 {
     // Enable serial port transmitter
-    //TXEN = ENABLE_ACTIVE_HIGH;
+    //TXEN = ENABLE;
     // enable RS485 transmitter
-    RS485_DE = ENABLE_ACTIVE_HIGH;
+    RS485_DE = ENABLE;
         while (!TXIF);
         TXREG = byte;
         while (!TRMT);						
     // Disable serial port transmitter
-    //TXEN = DISABLE_ACTIVE_HIGH;
+    //TXEN = DISABLE;
     // disable RS485 transmitter
-    RS485_DE = DISABLE_ACTIVE_HIGH;
+    RS485_DE = DISABLE;
 }
 
 void serial_Putstr(const char *str, unsigned char length)
 {
-  RS485_DE = ENABLE_ACTIVE_HIGH;
+  RS485_DE = ENABLE;
   for(unsigned char i=0;i<length;i++)
   {
     //Wait for TXREG Buffer to become available
@@ -50,7 +50,7 @@ void serial_Putstr(const char *str, unsigned char length)
     
     while (!TRMT);
   }
-  RS485_DE = DISABLE_ACTIVE_HIGH;
+  RS485_DE = DISABLE;
 }
 #else
 void serial_Putch(unsigned char byte) 

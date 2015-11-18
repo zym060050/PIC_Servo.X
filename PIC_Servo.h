@@ -147,15 +147,25 @@
 #define CRC_POLYNOMIAL          0x1021 // CRC-CCITT, can change to CRC-16
 #define CRC_INITIALE_VALUE      0x0000
 
-#define ENABLE_ACTIVE_LOW       0
-#define ENABLE_ACTIVE_HIGH      1
-#define DISABLE_ACTIVE_LOW      1
-#define DISABLE_ACTIVE_HIGH     0
-
 
 /*T3 to give 10ms every interrupt*/
 #define T3_START_COUNT_LO 0x2C
 #define T3_START_COUNT_HI 0xCF
+
+
+/*DEFINE*/
+#define ENABLE_ACTIVE_LOW       0
+#define ENABLE_ACTIVE_HIGH      1
+#define DISABLE_ACTIVE_LOW      1
+#define DISABLE_ACTIVE_HIGH     0
+#define ENABLE                  1
+#define DISABLE                 0
+#define SET                     1
+#define CLEAR                   0
+#define ON                      1
+#define OFF                     0
+#define LED_ON                  1
+#define LED_OFF                 0
 
 
 //CMD Structure

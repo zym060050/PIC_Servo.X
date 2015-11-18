@@ -143,11 +143,11 @@ void main (void)
                     case CONTROL_LED:
                         if(data[CMD_POS_DATA1])
                         {
-                            LED_STATUS = ENABLE_ACTIVE_HIGH;
+                            LED_STATUS = LED_ON;
                         }
                         else
                         {
-                            LED_STATUS = DISABLE_ACTIVE_HIGH;
+                            LED_STATUS = LED_OFF;
                         }
                         state = IDLE;
                         break;
