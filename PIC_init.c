@@ -11,8 +11,7 @@ void Initialize(void)
     TRISA = 0xFE;
     
     PORTB = 0xDF;
-    //TRISB = 0x13;
-    TRISB = 0x1F;
+    TRISB = 0x13;
     
     PORTC = 0;
     TRISC = 0xF9;//0xB9;
