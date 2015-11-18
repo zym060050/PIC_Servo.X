@@ -1,0 +1,15 @@
+#MPLAB X
+memoryfile.xml
+*.p1
+*.d
+*.pre
+*.cmf
+*.elf
+*.hxl
+*.lst
+*.map
+*.mum
+*.obj
+*.rlf
+*.sdb
+*.sym

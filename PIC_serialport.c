@@ -1,0 +1,78 @@
+#include "PIC_Servo.h"
+
+/*
+ code to test TX
+ * 
+ *    	// Enable serial port transmitter
+   		TXEN = ENABLE_ACTIVE_HIGH;
+    	// enable RS485 transmitter
+   		RS485_DE = ENABLE_ACTIVE_HIGH;
+			while (!TXIF);
+			TXREG = 0x6F;
+			while (!TRMT);						
+  		// Disable serial port transmitter
+   		TXEN = DISABLE_ACTIVE_HIGH;
+     	// disable RS485 transmitter
+   		RS485_DE = DISABLE_ACTIVE_HIGH;
+
+ * 
+ */
+
+#if 1
+void serial_Putch(unsigned char byte)
+{
+    // Enable serial port transmitter
+    //TXEN = ENABLE_ACTIVE_HIGH;
+    // enable RS485 transmitter
+    RS485_DE = ENABLE_ACTIVE_HIGH;
+        while (!TXIF);
+        TXREG = byte;
+        while (!TRMT);						
+    // Disable serial port transmitter
+    //TXEN = DISABLE_ACTIVE_HIGH;
+    // disable RS485 transmitter
+    RS485_DE = DISABLE_ACTIVE_HIGH;
+}
+
+void serial_Putstr(const char *str, unsigned char length)
+{
+  RS485_DE = ENABLE_ACTIVE_HIGH;
+  for(unsigned char i=0;i<length;i++)
+  {
+    //Wait for TXREG Buffer to become available
+    while(!TXIF);
+
+    //Write data
+    TXREG=(*str);
+
+    //Next goto char
+    str++;
+    
+    while (!TRMT);
+  }
+  RS485_DE = DISABLE_ACTIVE_HIGH;
+}
+#else
+void serial_Putch(unsigned char byte) 
+{
+  /* output one byte */
+  while(!TXIF)	/* set when register is empty */
+    continue;
+  TXREG = byte;
+}
+
+void serial_Putstr(const char *str, unsigned char length)
+{
+  for(unsigned char i=0;i<length;i++)
+  {
+    //Wait for TXREG Buffer to become available
+    while(!TXIF);
+
+    //Write data
+    TXREG=(*str);
+
+    //Next goto char
+    str++;
+  }
+}
+#endif
