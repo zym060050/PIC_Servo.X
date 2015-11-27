@@ -100,6 +100,7 @@ void Initialize(void)
     TMR3IP = 0;  //must set as low priority interrupt.         
     TMR3IF = CLEAR;
     
+        
 	// Start System ...
          
     // Initialize State Variables

@@ -228,3 +228,5 @@ unsigned char CheckCRC(unsigned char *inputData, unsigned char inputDataLength);
 unsigned int GenerateCRC (unsigned char *inputData, unsigned char inputDataLength);
 void serial_Putch(unsigned char byte);
 void serial_Putstr(const char *str, unsigned char length);
+void initEncoders(void);
+void updatePosition(unsigned int *currentPos, unsigned char direction, unsigned char source);

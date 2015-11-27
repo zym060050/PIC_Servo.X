@@ -7,7 +7,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "PIC_Servo.h"
+#define FORWARD 1
 
+unsigned int motorA_pos, motorB_pos;
 //This session is must if use Tinybld as it creates a GoTo instruction at start,
 void interrupt Do_goto(void)
 {
@@ -27,7 +29,9 @@ void interrupt low_priority interrupt_handler(void)
     {
         time++;
         TMR3L = T3_START_COUNT_LO;
-        TMR3H = T3_START_COUNT_HI;
+        TMR3H = T3_START_COUNT_HI;   
+        updatePosition(&motorA_pos,FORWARD, 0);
+        updatePosition(&motorB_pos,FORWARD, 3);
         TMR3IF=0;
     }
 }
@@ -37,6 +41,7 @@ void main (void)
     unsigned char data[PACKET_LENGTH], dataLength, address, CmdId, i;
       
     Initialize();
+    initEncoders();
     
     serial_Putstr("Hi\n",3);
 

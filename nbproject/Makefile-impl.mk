@@ -24,7 +24,7 @@ CLEAN_SUBPROJECTS=${CLEAN_SUBPROJECTS_${SUBPROJECTS}}
 
 
 # Project Name
-PROJECTNAME=PIC_Servo.X
+PROJECTNAME=trunk
 
 # Active Configuration
 DEFAULTCONF=default
