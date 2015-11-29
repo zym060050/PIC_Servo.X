@@ -17,12 +17,44 @@ void interrupt Do_goto(void)
 unsigned char state;
 volatile unsigned long time;
 
+#define UART_BUFFER_SIZE		6
+#define UART_BUFFER_DATA_SIZE 	PACKET_LENGTH
+static volatile unsigned char UART_Buffer_Index_Count = 0;
+static volatile unsigned char UART_Buffer_Data_Count = 0;
+static volatile unsigned char  UARTBuffer_RX[UART_BUFFER_SIZE][UART_BUFFER_DATA_SIZE];
+
+static volatile unsigned char UART_Buffer_Process_Index = 0;
+unsigned char CMD_Buffer[UART_BUFFER_DATA_SIZE];
+
+// function declare
+static void Process_Uart_Rx_Buffer(void);
+
 // low_priority interrupt handler
 void interrupt low_priority interrupt_handler(void)          
 {
-    //interrupt_handler
+    //uart interrupt
+    if (RCIE && RCIF)
+    {
+        UARTBuffer_RX[UART_Buffer_Index_Count][UART_Buffer_Data_Count++] = RCREG;
+        if((UART_Buffer_Data_Count == 1) && (UARTBuffer_RX[UART_Buffer_Index_Count][0] != SOH))
+        {
+            UART_Buffer_Data_Count = 0;
+        }
+        else
+        {
+            if (UART_Buffer_Data_Count == UART_BUFFER_DATA_SIZE)
+            {
+                UART_Buffer_Index_Count++;
+                if(UART_Buffer_Index_Count == UART_BUFFER_SIZE)
+                {
+                    UART_Buffer_Index_Count =0;
+                }
+                UART_Buffer_Data_Count = 0;
+            }
+        }
+    }
     
-    //timer3_int
+    //timer3 interrupt
     if (TMR3IE && TMR3IF)
     {
         time++;
@@ -33,9 +65,7 @@ void interrupt low_priority interrupt_handler(void)
 }
 
 void main (void)
-{
-    unsigned char data[PACKET_LENGTH], dataLength, address, CmdId, i;
-      
+{  
     Initialize();
     
     serial_Putstr("Hi\n",3);
@@ -44,128 +74,65 @@ void main (void)
    
     while (1)
     {
-        switch (state)
-        {
-            // Wait for start of a packet
-            case IDLE:
-#ifdef SERIAL_ECHO_TEST
-                if (RCIF == 1)
-                {
-                    data[CMD_POS_SOH] = RCREG;
-                    serial_Putch(data[CMD_POS_SOH]);
-                }
-#else
-                if (RCIF == 1)
-                {
-                    if (RCREG == SOH)
-                    {
-                        // Store received byte to check CRC
-                        data[CMD_POS_SOH] = SOH;
-                        // reset timer to check the packet time out
-                        time = 0;
-                        // reset data length counter
-                        dataLength = 1;
-                        // Go to the next state: Get the remaining bytes of the packet
-                        state = GET_PACKET_DATA;
-                    }
-                }
-#endif
-                break;
-                
-            // Get the remaining bytes of the packet
-            case GET_PACKET_DATA:
-                if (dataLength < PACKET_LENGTH)
-                {
-                    // Wait for receiving a byte
-                    if(RCIF == 1)
-                    {
-                        data[dataLength] = RCREG; // there is bug when receiving more than 2 bytes, UART hangs
-                        dataLength ++;
-                    }
-                    // if time out occurs ...
-                    // if complete packet is not received within 500ms
-                    else if (time > 50)
-                    {
-                        state = IDLE;
-                        #ifdef SERIAL_DEBUG
-                        serial_Putstr("TIMEOUT\n",8);
-                        #endif
-                    }
-                }
-                // If all bytes are received ...
-                else
-                {
-                    // read address from DIP switch
-                    address = BOARD_ID;
-                    // Go to the next state
-                    state = CHECK_CRC;
-                    #ifdef SERIAL_DEBUG
-                    serial_Putstr("CRCCHK\n",7);
-                    #endif
-                }
-                break;
-                
-            case CHECK_CRC:
-                // If CRC is OK
-                if (CheckCRC(data,dataLength) == OK)
-                {
-                    // Check Address ...
-                    if ((data[CMD_POS_ADDR] == address)||(data[CMD_POS_ADDR] == GLOBAL_ADDRESS))
-                    {
-                        CmdId = data[CMD_POS_CMD];
+        Process_Uart_Rx_Buffer();
+    }
+}
 
-                        state = EXECUTE_COMMAND;
-                        #ifdef SERIAL_DEBUG
-                        serial_Putstr("EXECMD\n",7);
-                        #endif
+static void Process_Uart_Rx_Buffer(void)
+{
+    if(UART_Buffer_Process_Index != UART_Buffer_Index_Count)
+    {
+        unsigned char i = 0;
+        unsigned char address = 0, CmdId = 0;
+        
+        for(i = 0; i < UART_BUFFER_DATA_SIZE; i++)
+		{
+			CMD_Buffer[i] = UARTBuffer_RX[UART_Buffer_Process_Index][i];
+			UARTBuffer_RX[UART_Buffer_Process_Index][i] = 0;
+		}
+		UART_Buffer_Process_Index++;
+		if(UART_Buffer_Process_Index == UART_BUFFER_SIZE)
+        {
+			UART_Buffer_Process_Index = 0;
+        }
+        
+        // read address from DIP switch
+        address = BOARD_ID;
+        // check CRC
+        if (CheckCRC(CMD_Buffer,UART_BUFFER_DATA_SIZE) == OK)
+        {
+            // Check Address ...
+            if ((CMD_Buffer[CMD_POS_ADDR] == address)||(CMD_Buffer[CMD_POS_ADDR] == GLOBAL_ADDRESS))
+            {
+                CmdId = CMD_Buffer[CMD_POS_CMD];
+            }
+            // Execute Command ...
+            switch (CmdId)
+            {
+                #ifndef NEW_PCB_BOARD
+                case CONTROL_LED:
+                    if(CMD_Buffer[CMD_POS_DATA1])
+                    {
+                        LED_STATUS = LED_ON;
                     }
                     else
                     {
-                        state = IDLE;
-                        #ifdef SERIAL_DEBUG
-                        serial_Putstr("ADDRFAIL\n",9);
-                        #endif
+                        LED_STATUS = LED_OFF;
                     }
-                }
-                else
-                {
-                    state = IDLE;
-                    #ifdef SERIAL_DEBUG
-                    serial_Putstr("CRCFAIL\n",8);
-                    #endif
-                }
-                break;
-                
-            case EXECUTE_COMMAND:
-                switch (CmdId)
-                {
-#ifndef NEW_PCB_BOARD
-                    case CONTROL_LED:
-                        if(data[CMD_POS_DATA1])
-                        {
-                            LED_STATUS = LED_ON;
-                        }
-                        else
-                        {
-                            LED_STATUS = LED_OFF;
-                        }
-                        state = IDLE;
-                        break;
-#endif
-                    case RESET_MAIN_MCU:
-                        //house-keeping here
-                        state = IDLE;
-                        RESET();
-                        break;
-                    default:
-                        state = IDLE;
-                        break;
-                }
-                break;
-                
-            default:
-                state = IDLE;
-                break;
+                    break;
+                #endif
+                case RESET_MAIN_MCU:
+                    //house-keeping here
+                    RESET();
+                    break;
+                default:
+                    break;
+            }
+        }
+        
+        for(i = 0; i < UART_BUFFER_DATA_SIZE; i++)
+		{
+            CMD_Buffer[i] = 0;
         }
     }
 }

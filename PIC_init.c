@@ -128,7 +128,13 @@ void Initialize(void)
     // Enable serial port receiver
     TXEN = ENABLE;
     CREN = ENABLE;
+#if 0
     RCIE = DISABLE;
+#else
+    RCIE = ENABLE;
+    RCIP = 0;
+    RCIF = CLEAR;
+#endif
     // Enable pripheral Interrupts
     PEIE = ENABLE;
     //Enable all longerrupts

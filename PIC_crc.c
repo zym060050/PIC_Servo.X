@@ -2,7 +2,7 @@
 
 //For calculating CRC for a string, append 16 zero bit to the end of string
 //For checking the CRC of a string, pass all string including CRC to this routine. If the output is 0, the CRC is OK
-static unsigned int GenerateCRC (unsigned char *inputData,unsigned char inputDataLength)
+unsigned int GenerateCRC (unsigned char *inputData,unsigned char inputDataLength)
 {
     unsigned int remainder,msBit;
     unsigned char i,j,mask;
