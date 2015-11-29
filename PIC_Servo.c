@@ -83,8 +83,9 @@ static void Process_Uart_Rx_Buffer(void)
     if(UART_Buffer_Process_Index != UART_Buffer_Index_Count)
     {
         unsigned char i = 0;
-        unsigned char address = 0, CmdId = 0;
+        unsigned char address = 0;
         
+        // get data
         for(i = 0; i < UART_BUFFER_DATA_SIZE; i++)
 		{
 			CMD_Buffer[i] = UARTBuffer_RX[UART_Buffer_Process_Index][i];
@@ -104,32 +105,32 @@ static void Process_Uart_Rx_Buffer(void)
             // Check Address ...
             if ((CMD_Buffer[CMD_POS_ADDR] == address)||(CMD_Buffer[CMD_POS_ADDR] == GLOBAL_ADDRESS))
             {
-                CmdId = CMD_Buffer[CMD_POS_CMD];
-            }
-            // Execute Command ...
-            switch (CmdId)
-            {
-                #ifndef NEW_PCB_BOARD
-                case CONTROL_LED:
-                    if(CMD_Buffer[CMD_POS_DATA1])
-                    {
-                        LED_STATUS = LED_ON;
-                    }
-                    else
-                    {
-                        LED_STATUS = LED_OFF;
-                    }
-                    break;
-                #endif
-                case RESET_MAIN_MCU:
-                    //house-keeping here
-                    RESET();
-                    break;
-                default:
-                    break;
+                // Execute Command ...
+                switch (CMD_Buffer[CMD_POS_CMD])
+                {
+                    #ifndef NEW_PCB_BOARD
+                    case CONTROL_LED:
+                        if(CMD_Buffer[CMD_POS_DATA1])
+                        {
+                            LED_STATUS = LED_ON;
+                        }
+                        else
+                        {
+                            LED_STATUS = LED_OFF;
+                        }
+                        break;
+                    #endif
+                    case RESET_MAIN_MCU:
+                        //house-keeping here
+                        RESET();
+                        break;
+                    default:
+                        break;
+                }
             }
         }
         
+        // clear command buffer
         for(i = 0; i < UART_BUFFER_DATA_SIZE; i++)
 		{
             CMD_Buffer[i] = 0;
