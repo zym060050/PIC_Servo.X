@@ -14,7 +14,6 @@ void interrupt Do_goto(void)
 }
 //to avoid overwriting the bootloader
 
-unsigned char state;
 volatile unsigned long time;
 
 #define UART_BUFFER_SIZE		6
@@ -108,8 +107,26 @@ static void Process_Uart_Rx_Buffer(void)
                 // Execute Command ...
                 switch (CMD_Buffer[CMD_POS_CMD])
                 {
+                    case CMD_MOTOR_A_FW:
+                        PIC_Motor_Control(MOTOR_A, MOTOR_CONTROL_FW, CMD_Buffer[CMD_POS_DATA1]);
+                        break;
+                    case CMD_MOTOR_A_BW:
+                        PIC_Motor_Control(MOTOR_A, MOTOR_CONTROL_BW, CMD_Buffer[CMD_POS_DATA1]);
+                        break;
+                    case CMD_MOTOR_A_STOP:
+                        PIC_Motor_Control(MOTOR_A, MOTOR_CONTROL_STOP, CMD_Buffer[CMD_POS_DATA1]);
+                        break;
+                    case CMD_MOTOR_B_FW:
+                        PIC_Motor_Control(MOTOR_B, MOTOR_CONTROL_FW, CMD_Buffer[CMD_POS_DATA1]);
+                        break;
+                    case CMD_MOTOR_B_BW:
+                        PIC_Motor_Control(MOTOR_B, MOTOR_CONTROL_BW, CMD_Buffer[CMD_POS_DATA1]);
+                        break;
+                    case CMD_MOTOR_B_STOP:
+                        PIC_Motor_Control(MOTOR_B, MOTOR_CONTROL_STOP, CMD_Buffer[CMD_POS_DATA1]);
+                        break;
                     #ifndef NEW_PCB_BOARD
-                    case CONTROL_LED:
+                    case CMD_CONTROL_LED:
                         if(CMD_Buffer[CMD_POS_DATA1])
                         {
                             LED_STATUS = LED_ON;
@@ -120,7 +137,7 @@ static void Process_Uart_Rx_Buffer(void)
                         }
                         break;
                     #endif
-                    case RESET_MAIN_MCU:
+                    case CMD_RESET_MAIN_MCU:
                         //house-keeping here
                         RESET();
                         break;

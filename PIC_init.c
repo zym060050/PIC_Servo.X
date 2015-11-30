@@ -101,13 +101,13 @@ void Initialize(void)
     TMR3IF = CLEAR;
     
 	// Start System ...
-         
-    // Initialize State Variables
-    state = IDLE;
-    //Initialize motor controls
-    M_A1 = ENABLE_ACTIVE_LOW;
+    
+    //Initialize motor 
+    //motor break
+    M_A1 = DISABLE_ACTIVE_LOW;
     M_A2 = DISABLE_ACTIVE_LOW;
-    M_B1 = ENABLE_ACTIVE_LOW;
+    //motor break
+    M_B1 = DISABLE_ACTIVE_LOW;
     M_B2 = DISABLE_ACTIVE_LOW;     
     
     

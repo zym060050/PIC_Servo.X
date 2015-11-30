@@ -17,6 +17,7 @@
       <itemPath>PIC_init.c</itemPath>
       <itemPath>PIC_crc.c</itemPath>
       <itemPath>PIC_serialport.c</itemPath>
+      <itemPath>PIC_motor.c</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"

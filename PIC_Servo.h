@@ -190,10 +190,16 @@
 #define ERROR   0xFF
 #define SOH     0x55
 /*CMD ID*/
+#define CMD_MOTOR_A_FW              0x01
+#define CMD_MOTOR_A_BW              0x02
+#define CMD_MOTOR_A_STOP            0x03
+#define CMD_MOTOR_B_FW              0x04
+#define CMD_MOTOR_B_BW              0x05
+#define CMD_MOTOR_B_STOP            0x06
 #ifndef NEW_PCB_BOARD
-#define CONTROL_LED                 0x1E
+#define CMD_CONTROL_LED             0x1E
 #endif
-#define RESET_MAIN_MCU              0x1F
+#define CMD_RESET_MAIN_MCU          0x1F
 /*
  * Command example
 //LED OFF
@@ -207,24 +213,45 @@
 //RESET
 0x55 0xFF 0x1F 0x00 0x00 0x12 0x94
 0x55 0x01 0x1F 0x00 0x00 0x2F 0x83
+
+//A FW
+0x55 0xFF 0x01 0x00 0x00 0x4A 0xF6
+//A BW
+0x55 0xFF 0x02 0x00 0x00 0x13 0xA6
+//A STOP
+0x55 0xFF 0x03 0x00 0x00 0x24 0x96
+//B FW
+0x55 0xFF 0x04 0x00 0x00 0xA1 0x06
+//B BW
+0x55 0xFF 0x05 0x00 0x00 0x96 0x36
+//B STOP
+0x55 0xFF 0x06 0x00 0x00 0xCF 0x66
  */
 
 
-//extern
-extern unsigned char state;
-// Defining program state constants
-#define IDLE            0
-#define GET_PACKET_DATA 1
-#define CHECK_CRC       2
-#define EXECUTE_COMMAND 3
-#define RESEND_COMMAND  4
-#define SHOW_ERROR      5
+//motor
+enum
+{
+    MOTOR_A,
+    MOTOR_B
+};
 
+enum
+{
+    MOTOR_CONTROL_FW,
+    MOTOR_CONTROL_BW,
+    MOTOR_CONTROL_STOP
+};
 
 
 //Functions
+//PIC_init.c
 void Initialize(void);
+//PIC_crc.c
 unsigned char CheckCRC(unsigned char *inputData, unsigned char inputDataLength);
 unsigned int GenerateCRC (unsigned char *inputData, unsigned char inputDataLength);
+//PIC_serialport.c
 void serial_Putch(unsigned char byte);
 void serial_Putstr(const char *str, unsigned char length);
+//PIC_motor.c
+void PIC_Motor_Control(unsigned char target_A_B, unsigned char control, unsigned long position);
