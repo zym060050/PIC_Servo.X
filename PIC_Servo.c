@@ -14,7 +14,7 @@ void interrupt Do_goto(void)
 }
 //to avoid overwriting the bootloader
 
-volatile unsigned long time;
+volatile unsigned long time_10ms;
 
 #define UART_BUFFER_SIZE		6
 #define UART_BUFFER_DATA_SIZE 	PACKET_LENGTH
@@ -56,11 +56,17 @@ void interrupt low_priority interrupt_handler(void)
     //timer3 interrupt
     if (TMR3IE && TMR3IF)
     {
-        time++;
+        time_10ms++;
         TMR3L = T3_START_COUNT_LO;
         TMR3H = T3_START_COUNT_HI;
         TMR3IF=0;
     }
+}
+
+void wait_for_ms(unsigned long no_of_10ms)
+{
+    time_10ms = 0;
+    while(time_10ms<no_of_10ms);
 }
 
 void main (void)
@@ -73,7 +79,14 @@ void main (void)
    
     while (1)
     {
+#ifdef PCB_BOARD_VERIFY_LED
+        LED_STATUS = LED_ON;
+        wait_for_ms(500);
+        LED_STATUS = LED_OFF;
+        wait_for_ms(500);
+#else
         Process_Uart_Rx_Buffer();
+#endif
     }
 }
 

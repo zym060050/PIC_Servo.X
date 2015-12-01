@@ -6,10 +6,9 @@
 //#include <PIC18F2520.h> 
 
 #define xBREAD_BOARD_SETUP
-#define xNEW_PCB_BOARD
+#define NEW_PCB_BOARD
 /*Testing Feature Switch*/
-#define xSERIAL_ECHO_TEST
-#define xSERIAL_DEBUG
+#define xPCB_BOARD_VERIFY_LED    // Blink LED for PCB Board verification
 
 // #pragma config statements should precede project file includes.
 // Use project enums instead of #define for ON and OFF.
@@ -132,7 +131,9 @@
 
 #define BOARD_ID     RB3
 #define RS485_DE     RC5 //RS485 write_enable active high, DE and RE shorted.
-
+#ifdef PCB_BOARD_VERIFY_LED
+#define LED_STATUS   RS485_DE
+#endif
 
 #define SPARE_IN     RE3
 #define EXT_INTIO    RB2

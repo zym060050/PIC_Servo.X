@@ -86,8 +86,8 @@ void Initialize(void)
     CCP2CON = 0x0C;
     
     //set below for PWM duty cycles 0~80 corresponds to 0~100% duty.
-    CCPR1L = 0x1E; //30/80
-    CCPR2L = 0x1E; //40/80       
+    CCPR1L = 80;//0x1E; //30/80
+    CCPR2L = 80;//0x1E; //40/80       
     
     
     //timer 3 interrupt    
