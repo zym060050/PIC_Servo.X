@@ -103,12 +103,19 @@ void Initialize(void)
 	// Start System ...
     
     //Initialize motor 
+#if 1
     //motor break
     M_A1 = DISABLE_ACTIVE_LOW;
     M_A2 = DISABLE_ACTIVE_LOW;
     //motor break
     M_B1 = DISABLE_ACTIVE_LOW;
     M_B2 = DISABLE_ACTIVE_LOW;     
+#else
+    M_A1 = ENABLE_ACTIVE_LOW;
+    M_A2 = DISABLE_ACTIVE_LOW;
+    M_B1 = ENABLE_ACTIVE_LOW;
+    M_B2 = DISABLE_ACTIVE_LOW;
+#endif
     
     
     // Start timer 2 (PWM)

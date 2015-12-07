@@ -63,7 +63,7 @@ void interrupt low_priority interrupt_handler(void)
     }
 }
 
-void wait_for_ms(unsigned long no_of_10ms)
+void wait_for_10ms(unsigned long no_of_10ms)
 {
     time_10ms = 0;
     while(time_10ms<no_of_10ms);
@@ -81,9 +81,9 @@ void main (void)
     {
 #ifdef PCB_BOARD_VERIFY_LED
         LED_STATUS = LED_ON;
-        wait_for_ms(500);
+        wait_for_10ms(50);
         LED_STATUS = LED_OFF;
-        wait_for_ms(500);
+        wait_for_10ms(50);
 #else
         Process_Uart_Rx_Buffer();
 #endif
