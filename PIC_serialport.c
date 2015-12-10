@@ -52,6 +52,17 @@ void serial_Putstr(const char *str, unsigned char length)
   }
   RS485_DE = DISABLE;
 }
+
+void serial_Putint() {
+    int data = MotorA_Position;
+    RS485_DE = ENABLE;
+    TXREG = data & 0xff;
+    while(TXIF==0); 
+    TXREG = (data >> 8) & 0xff;
+    while(TXIF==0);
+        
+    RS485_DE = DISABLE;
+}
 #else
 void serial_Putch(unsigned char byte) 
 {

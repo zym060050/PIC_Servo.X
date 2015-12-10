@@ -34,6 +34,21 @@ void Initialize(void)
     
     //set all analog pins as digital except for AN0  
     ADCON1 = 0x0E;
+    
+    INTCONbits.INT0IE = 1; //enable Interrupt 0 (RB0 as interrupt)
+    INTCON3bits.INT1IE = 1; //enable Interrupt 1 (RB1 as interrupt)
+    INTCON3bits.INT2IE = 1; //enable Interrupt 2 (RB2 as interrupt)
+    
+    INTCON2bits.INTEDG0 = 0; //cause interrupt at falling edge
+    INTCON2bits.INTEDG1 = 1; //cause interrupt at falling edge
+    INTCON2bits.INTEDG2 = 0; //cause interrupt at falling edge
+    
+    INTCONbits.INT0IF = 0; //reset interrupt flag
+    INTCON3bits.INT1IF = 0; //reset interrupt flag
+    INTCON3bits.INT2IF = 0; //reset interrupt flag
+    
+    INTCON3bits.INT1IP = 0; //priority low
+    INTCON3bits.INT2IP = 0; //priority low
 #endif
     
     
@@ -86,8 +101,8 @@ void Initialize(void)
     CCP2CON = 0x0C;
     
     //set below for PWM duty cycles 0~80 corresponds to 0~100% duty.
-    CCPR1L = 80;//0x1E; //30/80
-    CCPR2L = 80;//0x1E; //40/80       
+    CCPR1L = 10;//0x1E; //30/80
+    CCPR2L = 10;//0x1E; //40/80       
     
     
     //timer 3 interrupt    

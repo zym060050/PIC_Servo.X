@@ -25,6 +25,13 @@ static volatile unsigned char  UARTBuffer_RX[UART_BUFFER_SIZE][UART_BUFFER_DATA_
 static volatile unsigned char UART_Buffer_Process_Index = 0;
 unsigned char CMD_Buffer[UART_BUFFER_DATA_SIZE];
 
+unsigned char lastATach0[4] = 0;
+unsigned char lastATach1[4] = 0;
+unsigned char ATach0 = 0;
+unsigned char ATach1 = 0;
+
+unsigned char currentDirection = 0;
+
 // function declare
 static void Process_Uart_Rx_Buffer(void);
 
@@ -61,8 +68,63 @@ void interrupt low_priority interrupt_handler(void)
         TMR3H = T3_START_COUNT_HI;
         TMR3IF=0;
     }
-}
+    
+    if (INT1IF || INT2IF) {
+        unsigned char currentReading = MA_Tacho0 | (MA_Tacho1 << 1);
+        if (lastATach0[0] == 0 && lastATach0[1] == 0) {
+            lastATach0[0] = currentReading;
+        } else {
+            switch (lastATach0[0]) {
+                case 0:
+                    if (currentReading == 1) {
+                        MotorA_Position--;
+                    } else if (currentReading == 2) {
+                        MotorA_Position++;
+                    }
+                    break;
+                case 1:
+                    if (currentReading == 3) {
+                        MotorA_Position--;
+                    } else if (currentReading == 0) {
+                        MotorA_Position++;
+                    }
+                    break;
+                case 2:
+                    if (currentReading == 0) {
+                        MotorA_Position--;
+                    } else if (currentReading == 3) {
+                        MotorA_Position++;
+                    }
+                    break;
+                case 3:
+                    if (currentReading == 2) {
+                        MotorA_Position--;
+                    } else if (currentReading == 1) {
+                        MotorA_Position++;
+                    }
+                    break;
 
+                default:
+                    break;
+            }
+            lastATach0[0] = currentReading;
+        }
+        if (currentDirection == CMD_MOTOR_A_FW) {
+            if (MotorA_Position > motorATargetPos) {
+                //moving FW
+                PIC_Motor_Control(MOTOR_A, MOTOR_CONTROL_STOP, 0);
+            }
+        } else if (currentDirection == CMD_MOTOR_A_BW) {
+            if (MotorA_Position < motorATargetPos) {
+                //moving BW
+                PIC_Motor_Control(MOTOR_A, MOTOR_CONTROL_STOP, 0);
+            }
+        }
+        
+        INT1IF = 0;
+        INT2IF = 0;
+    }
+}
 void wait_for_10ms(unsigned long no_of_10ms)
 {
     time_10ms = 0;
@@ -73,10 +135,8 @@ void main (void)
 {  
     Initialize();
     
-    serial_Putstr("Hi\n",3);
 
     __delay_ms(19); //max value
-   
     while (1)
     {
 #ifdef PCB_BOARD_VERIFY_LED
@@ -86,6 +146,8 @@ void main (void)
         wait_for_10ms(50);
 #else
         Process_Uart_Rx_Buffer();
+        //PIC_Motor_Control(MOTOR_A, MOTOR_CONTROL_FW, CMD_Buffer[CMD_POS_DATA1]);
+        
 #endif
     }
 }
@@ -96,6 +158,8 @@ static void Process_Uart_Rx_Buffer(void)
     {
         unsigned char i = 0;
         unsigned char address = 0;
+        int aInt=0;
+        char str[15];
         
         // get data
         for(i = 0; i < UART_BUFFER_DATA_SIZE; i++)
@@ -118,25 +182,33 @@ static void Process_Uart_Rx_Buffer(void)
             if ((CMD_Buffer[CMD_POS_ADDR] == address)||(CMD_Buffer[CMD_POS_ADDR] == GLOBAL_ADDRESS))
             {
                 // Execute Command ...
+
+                
                 switch (CMD_Buffer[CMD_POS_CMD])
                 {
                     case CMD_MOTOR_A_FW:
-                        PIC_Motor_Control(MOTOR_A, MOTOR_CONTROL_FW, CMD_Buffer[CMD_POS_DATA1]);
+                        PIC_Motor_Control(MOTOR_A, MOTOR_CONTROL_FW, (CMD_Buffer[CMD_POS_DATA1] | (CMD_Buffer[CMD_POS_DATA2]<<8)));
+                        currentDirection=CMD_MOTOR_A_FW;
                         break;
                     case CMD_MOTOR_A_BW:
-                        PIC_Motor_Control(MOTOR_A, MOTOR_CONTROL_BW, CMD_Buffer[CMD_POS_DATA1]);
+                        PIC_Motor_Control(MOTOR_A, MOTOR_CONTROL_BW, (CMD_Buffer[CMD_POS_DATA1] | (CMD_Buffer[CMD_POS_DATA2]<<8)));
+                        currentDirection=CMD_MOTOR_A_BW;
                         break;
                     case CMD_MOTOR_A_STOP:
-                        PIC_Motor_Control(MOTOR_A, MOTOR_CONTROL_STOP, CMD_Buffer[CMD_POS_DATA1]);
+                        PIC_Motor_Control(MOTOR_A, MOTOR_CONTROL_STOP, (CMD_Buffer[CMD_POS_DATA1] | (CMD_Buffer[CMD_POS_DATA2]<<8)));
+                        currentDirection=CMD_MOTOR_A_STOP;
                         break;
                     case CMD_MOTOR_B_FW:
                         PIC_Motor_Control(MOTOR_B, MOTOR_CONTROL_FW, CMD_Buffer[CMD_POS_DATA1]);
+                        currentDirection=CMD_MOTOR_B_FW;
                         break;
                     case CMD_MOTOR_B_BW:
                         PIC_Motor_Control(MOTOR_B, MOTOR_CONTROL_BW, CMD_Buffer[CMD_POS_DATA1]);
+                        currentDirection=CMD_MOTOR_B_BW;
                         break;
                     case CMD_MOTOR_B_STOP:
                         PIC_Motor_Control(MOTOR_B, MOTOR_CONTROL_STOP, CMD_Buffer[CMD_POS_DATA1]);
+                        currentDirection=CMD_MOTOR_B_STOP;
                         break;
                     #ifndef NEW_PCB_BOARD
                     case CMD_CONTROL_LED:
@@ -152,7 +224,12 @@ static void Process_Uart_Rx_Buffer(void)
                     #endif
                     case CMD_RESET_MAIN_MCU:
                         //house-keeping here
-                        RESET();
+                        //aInt = MotorA_Position;
+                        str[0] = MotorA_Position & 0xff;
+                        str[1] = (MotorA_Position >> 8) & 0xff;
+                        //sprintf(str, "%d", MotorA_Position);
+                        serial_Putstr(str,2);
+                        //RESET();
                         break;
                     default:
                         break;
