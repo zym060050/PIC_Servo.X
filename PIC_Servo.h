@@ -254,5 +254,12 @@ unsigned int GenerateCRC (unsigned char *inputData, unsigned char inputDataLengt
 //PIC_serialport.c
 void serial_Putch(unsigned char byte);
 void serial_Putstr(const char *str, unsigned char length);
+void serial_Putint();
 //PIC_motor.c
 void PIC_Motor_Control(unsigned char target_A_B, unsigned char control, unsigned long position);
+unsigned long MotorA_Position = 30000;
+unsigned long motorACurrentPos = 0;
+unsigned long motorATargetPos = 0;
+unsigned long MotorB_Position = 30000;
+unsigned long motorBCurrentPos = 0;
+unsigned long motorBTargetPos = 0;
