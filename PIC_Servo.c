@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "PIC_Servo.h"
+#include "PID_v1.h"
 
 //This session is must if use Tinybld as it creates a GoTo instruction at start,
 void interrupt Do_goto(void)
@@ -25,6 +26,10 @@ static volatile unsigned char  UARTBuffer_RX[UART_BUFFER_SIZE][UART_BUFFER_DATA_
 //Command Buffer
 static volatile unsigned char UART_Buffer_Process_Index = 0;
 unsigned char CMD_Buffer[UART_BUFFER_DATA_SIZE];
+
+double test_output = 0;
+double test_setpoint = 0;
+double motorA_pos = 0;
 
 // function declare
 static void Process_Uart_Rx_Buffer(void);
@@ -60,6 +65,11 @@ void interrupt low_priority interrupt_handler(void)
         time_10ms++;
         TMR3L = T3_START_COUNT_LO;
         TMR3H = T3_START_COUNT_HI;
+        motorA_pos=MotorA_Position;
+        test_setpoint=motorATargetPos;
+        PID(&motorA_pos, &test_output, &test_setpoint,MOTOR_PID_KP,MOTOR_PID_KI, MOTOR_PID_KD, 0);
+        PID_Compute();
+        CCPR1L=test_output;
         TMR3IF=0;
     }
     
