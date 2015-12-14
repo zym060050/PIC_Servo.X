@@ -198,6 +198,8 @@
 #define CMD_MOTOR_B_BW              0x05
 #define CMD_MOTOR_B_STOP            0x06
 #define CMD_MOTOR_READ_COUNT        0x07
+#define CMD_MOTOR_A_MOVE_TO         0x08
+#define CMD_MOTOR_B_MOVE_TO         0x09
 #ifndef NEW_PCB_BOARD
 #define CMD_CONTROL_LED             0x1E
 #endif
@@ -245,7 +247,13 @@ enum
     MOTOR_CONTROL_STOP
 };
 
+#define MOTOR_MAX_SPEED         80
+#define MOTOR_SLOW_SPEED        10
+#define MOTOR_VERY_SLOW_SPEED   5
+#define MOTOR_SUPER_SLOW_SPEED  2
 
+
+//extern
 extern long MotorA_Position;
 extern long motorATargetPos;
 extern long MotorB_Position;
@@ -261,4 +269,6 @@ unsigned int GenerateCRC (unsigned char *inputData, unsigned char inputDataLengt
 void serial_Putch(unsigned char byte);
 void serial_Putstr(const char *str, unsigned char length);
 //PIC_motor.c
-void PIC_Motor_Control(unsigned char target_A_B, unsigned char control, unsigned long position);
+void PIC_Motor_Control(unsigned char target_A_B, unsigned char control, unsigned long move_steps);
+void PIC_Motor_Move_To_Position(unsigned char target_A_B, long position);
+void PIC_Motor_Speed_Configure(unsigned char target_A_B, unsigned long steps_delta);

@@ -71,7 +71,14 @@ void interrupt low_priority interrupt_handler(void)
         {
             //FW
             MotorA_Position++;
-            if (MotorA_Position >= motorATargetPos) {
+            //speed control
+            if(MotorA_Position<motorATargetPos)
+            {
+                PIC_Motor_Speed_Configure(MOTOR_A, motorATargetPos-MotorA_Position);
+            }
+            //stop check
+            if (MotorA_Position >= motorATargetPos)
+            {
                 //moving FW stop
                 PIC_Motor_Control(MOTOR_A, MOTOR_CONTROL_STOP, 0);
             }
@@ -80,7 +87,14 @@ void interrupt low_priority interrupt_handler(void)
         {
             //BW
             MotorA_Position--;
-            if (MotorA_Position <= motorATargetPos) {
+            //speed control
+            if(MotorA_Position>motorATargetPos)
+            {
+                PIC_Motor_Speed_Configure(MOTOR_A, MotorA_Position-motorATargetPos);
+            }
+            //stop check
+            if (MotorA_Position <= motorATargetPos)
+            {
                 //moving BW stop
                 PIC_Motor_Control(MOTOR_A, MOTOR_CONTROL_STOP, 0);
             }
@@ -94,7 +108,14 @@ void interrupt low_priority interrupt_handler(void)
         {
             //FW
             MotorB_Position++;
-            if (MotorB_Position >= motorBTargetPos) {
+            //speed control
+            if(MotorB_Position<motorBTargetPos)
+            {
+                PIC_Motor_Speed_Configure(MOTOR_B, motorBTargetPos-MotorB_Position);
+            }
+            //stop check
+            if (MotorB_Position >= motorBTargetPos)
+            {
                 //moving FW stop
                 PIC_Motor_Control(MOTOR_B, MOTOR_CONTROL_STOP, 0);
             }
@@ -103,7 +124,14 @@ void interrupt low_priority interrupt_handler(void)
         {
             //BW
             MotorB_Position--;
-            if (MotorB_Position <= motorBTargetPos) {
+            //speed control
+            if(MotorB_Position>motorBTargetPos)
+            {
+                PIC_Motor_Speed_Configure(MOTOR_B, MotorB_Position-motorBTargetPos);
+            }
+            //stop check
+            if (MotorB_Position <= motorBTargetPos)
+            {
                 //moving BW stop
                 PIC_Motor_Control(MOTOR_B, MOTOR_CONTROL_STOP, 0);
             }
@@ -192,6 +220,12 @@ static void Process_Uart_Rx_Buffer(void)
                         str[2] = MotorB_Position & 0xff;
                         str[3] = (MotorB_Position >> 8) & 0xff;
                         serial_Putstr(str,4);
+                        break;
+                    case CMD_MOTOR_A_MOVE_TO:
+                        PIC_Motor_Move_To_Position(MOTOR_A, (CMD_Buffer[CMD_POS_DATA1] | (CMD_Buffer[CMD_POS_DATA2]<<8)));
+                        break;
+                    case CMD_MOTOR_B_MOVE_TO:
+                        PIC_Motor_Move_To_Position(MOTOR_B, (CMD_Buffer[CMD_POS_DATA1] | (CMD_Buffer[CMD_POS_DATA2]<<8)));
                         break;
                     #ifndef NEW_PCB_BOARD
                     case CMD_CONTROL_LED:
