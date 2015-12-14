@@ -91,7 +91,7 @@ void PIC_Motor_Move_To_Position(unsigned char target_A_B, long position)
         {
             PIC_Motor_Control(target_A_B, MOTOR_CONTROL_FW, (position-MotorB_Position));
         }
-        else if (position < MotorA_Position)
+        else if (position < MotorB_Position)
         {
             PIC_Motor_Control(target_A_B, MOTOR_CONTROL_BW, (MotorB_Position-position));
         }
