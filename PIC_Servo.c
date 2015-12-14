@@ -14,23 +14,17 @@ void interrupt Do_goto(void)
 }
 //to avoid overwriting the bootloader
 
+//Counter
 volatile unsigned long time_10ms;
-
+//UART Buffer
 #define UART_BUFFER_SIZE		6
 #define UART_BUFFER_DATA_SIZE 	PACKET_LENGTH
 static volatile unsigned char UART_Buffer_Index_Count = 0;
 static volatile unsigned char UART_Buffer_Data_Count = 0;
 static volatile unsigned char  UARTBuffer_RX[UART_BUFFER_SIZE][UART_BUFFER_DATA_SIZE];
-
+//Command Buffer
 static volatile unsigned char UART_Buffer_Process_Index = 0;
 unsigned char CMD_Buffer[UART_BUFFER_DATA_SIZE];
-
-unsigned char lastATach0[4] = 0;
-unsigned char lastATach1[4] = 0;
-unsigned char ATach0 = 0;
-unsigned char ATach1 = 0;
-
-unsigned char currentDirection = 0;
 
 // function declare
 static void Process_Uart_Rx_Buffer(void);
@@ -70,60 +64,51 @@ void interrupt low_priority interrupt_handler(void)
     }
     
     //INT interrupt
-    if (INT1IF || INT2IF) {
-        unsigned char currentReading = MA_Tacho0 | (MA_Tacho1 << 1);
-        if (lastATach0[0] == 0 && lastATach0[1] == 0) {
-            lastATach0[0] = currentReading;
-        } else {
-            switch (lastATach0[0]) {
-                case 0:
-                    if (currentReading == 1) {
-                        MotorA_Position--;
-                    } else if (currentReading == 2) {
-                        MotorA_Position++;
-                    }
-                    break;
-                case 1:
-                    if (currentReading == 3) {
-                        MotorA_Position--;
-                    } else if (currentReading == 0) {
-                        MotorA_Position++;
-                    }
-                    break;
-                case 2:
-                    if (currentReading == 0) {
-                        MotorA_Position--;
-                    } else if (currentReading == 3) {
-                        MotorA_Position++;
-                    }
-                    break;
-                case 3:
-                    if (currentReading == 2) {
-                        MotorA_Position--;
-                    } else if (currentReading == 1) {
-                        MotorA_Position++;
-                    }
-                    break;
-
-                default:
-                    break;
-            }
-            lastATach0[0] = currentReading;
-        }
-        if (currentDirection == CMD_MOTOR_A_FW) {
-            if (MotorA_Position > motorATargetPos) {
-                //moving FW
-                PIC_Motor_Control(MOTOR_A, MOTOR_CONTROL_STOP, 0);
-            }
-        } else if (currentDirection == CMD_MOTOR_A_BW) {
-            if (MotorA_Position < motorATargetPos) {
-                //moving BW
+    /*Motor A Tacho 0*/
+    if(INT2IE && INT2IF)
+    {
+        if(MA_Tacho1)
+        {
+            //FW
+            MotorA_Position++;
+            if (MotorA_Position >= motorATargetPos) {
+                //moving FW stop
                 PIC_Motor_Control(MOTOR_A, MOTOR_CONTROL_STOP, 0);
             }
         }
-        
-        INT1IF = 0;
+        else
+        {
+            //BW
+            MotorA_Position--;
+            if (MotorA_Position <= motorATargetPos) {
+                //moving BW stop
+                PIC_Motor_Control(MOTOR_A, MOTOR_CONTROL_STOP, 0);
+            }
+        }
         INT2IF = 0;
+    }
+    /*Motor B Tacho 0*/
+    if(INT1IE && INT1IF)
+    {
+        if(MB_Tacho1)
+        {
+            //FW
+            MotorB_Position++;
+            if (MotorB_Position >= motorBTargetPos) {
+                //moving FW stop
+                PIC_Motor_Control(MOTOR_B, MOTOR_CONTROL_STOP, 0);
+            }
+        }
+        else
+        {
+            //BW
+            MotorB_Position--;
+            if (MotorB_Position <= motorBTargetPos) {
+                //moving BW stop
+                PIC_Motor_Control(MOTOR_B, MOTOR_CONTROL_STOP, 0);
+            }
+        }
+        INT1IF = 0;
     }
 }
 
@@ -136,7 +121,7 @@ void wait_for_10ms(unsigned long no_of_10ms)
 void main (void)
 {  
     Initialize();
-
+    
     __delay_ms(19); //max value
     
     while (1)
@@ -185,33 +170,28 @@ static void Process_Uart_Rx_Buffer(void)
                 {
                     case CMD_MOTOR_A_FW:
                         PIC_Motor_Control(MOTOR_A, MOTOR_CONTROL_FW, (CMD_Buffer[CMD_POS_DATA1] | (CMD_Buffer[CMD_POS_DATA2]<<8)));
-                        currentDirection=CMD_MOTOR_A_FW;
                         break;
                     case CMD_MOTOR_A_BW:
                         PIC_Motor_Control(MOTOR_A, MOTOR_CONTROL_BW, (CMD_Buffer[CMD_POS_DATA1] | (CMD_Buffer[CMD_POS_DATA2]<<8)));
-                        currentDirection=CMD_MOTOR_A_BW;
                         break;
                     case CMD_MOTOR_A_STOP:
                         PIC_Motor_Control(MOTOR_A, MOTOR_CONTROL_STOP, (CMD_Buffer[CMD_POS_DATA1] | (CMD_Buffer[CMD_POS_DATA2]<<8)));
-                        currentDirection=CMD_MOTOR_A_STOP;
                         break;
                     case CMD_MOTOR_B_FW:
-                        PIC_Motor_Control(MOTOR_B, MOTOR_CONTROL_FW, CMD_Buffer[CMD_POS_DATA1]);
-                        currentDirection=CMD_MOTOR_B_FW;
+                        PIC_Motor_Control(MOTOR_B, MOTOR_CONTROL_FW, (CMD_Buffer[CMD_POS_DATA1] | (CMD_Buffer[CMD_POS_DATA2]<<8)));
                         break;
                     case CMD_MOTOR_B_BW:
-                        PIC_Motor_Control(MOTOR_B, MOTOR_CONTROL_BW, CMD_Buffer[CMD_POS_DATA1]);
-                        currentDirection=CMD_MOTOR_B_BW;
+                        PIC_Motor_Control(MOTOR_B, MOTOR_CONTROL_BW, (CMD_Buffer[CMD_POS_DATA1] | (CMD_Buffer[CMD_POS_DATA2]<<8)));
                         break;
                     case CMD_MOTOR_B_STOP:
-                        PIC_Motor_Control(MOTOR_B, MOTOR_CONTROL_STOP, CMD_Buffer[CMD_POS_DATA1]);
-                        currentDirection=CMD_MOTOR_B_STOP;
+                        PIC_Motor_Control(MOTOR_B, MOTOR_CONTROL_STOP, (CMD_Buffer[CMD_POS_DATA1] | (CMD_Buffer[CMD_POS_DATA2]<<8)));
                         break;
                     case CMD_MOTOR_READ_COUNT:
                         str[0] = MotorA_Position & 0xff;
                         str[1] = (MotorA_Position >> 8) & 0xff;
-                        //sprintf(str, "%d", MotorA_Position);
-                        serial_Putstr(str,2);
+                        str[2] = MotorB_Position & 0xff;
+                        str[3] = (MotorB_Position >> 8) & 0xff;
+                        serial_Putstr(str,4);
                         break;
                     #ifndef NEW_PCB_BOARD
                     case CMD_CONTROL_LED:

@@ -247,10 +247,8 @@ enum
 
 
 extern long MotorA_Position;
-extern long motorACurrentPos;
 extern long motorATargetPos;
 extern long MotorB_Position;
-extern long motorBCurrentPos;
 extern long motorBTargetPos;
 
 //Functions
