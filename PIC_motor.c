@@ -1,10 +1,15 @@
 #include "PIC_Servo.h"
 
-
+long MotorA_Position = 30000;
+long motorACurrentPos = 0;
+long motorATargetPos = 0;
+long MotorB_Position = 30000;
+long motorBCurrentPos = 0;
+long motorBTargetPos = 0;
 
 void PIC_Motor_Control(unsigned char target_A_B, unsigned char control, unsigned long position)
 {
-    (void)position;
+    long pos = position;
     unsigned char M1 = 0;
     unsigned char M2 = 0;
     motorACurrentPos = MotorA_Position;
@@ -18,7 +23,7 @@ void PIC_Motor_Control(unsigned char target_A_B, unsigned char control, unsigned
         case MOTOR_CONTROL_BW:
             M1 = DISABLE_ACTIVE_LOW;
             M2 = ENABLE_ACTIVE_LOW;
-            position=position*-1;
+            pos=pos*-1;
             break;
         case MOTOR_CONTROL_STOP:
             M1 = DISABLE_ACTIVE_LOW;
@@ -32,7 +37,7 @@ void PIC_Motor_Control(unsigned char target_A_B, unsigned char control, unsigned
     
     if(target_A_B == MOTOR_A)
     {
-        motorATargetPos = motorACurrentPos + position;
+        motorATargetPos = motorACurrentPos + pos;
         //float stop first
         M_A1 = ENABLE_ACTIVE_LOW;
         M_A2 = ENABLE_ACTIVE_LOW;
@@ -42,7 +47,7 @@ void PIC_Motor_Control(unsigned char target_A_B, unsigned char control, unsigned
     }
     else if(target_A_B == MOTOR_B)
     {
-        motorBTargetPos = motorBCurrentPos + position;
+        motorBTargetPos = motorBCurrentPos + pos;
         //float stop first
         M_B1 = ENABLE_ACTIVE_LOW;
         M_B2 = ENABLE_ACTIVE_LOW;

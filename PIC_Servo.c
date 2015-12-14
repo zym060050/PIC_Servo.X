@@ -69,6 +69,7 @@ void interrupt low_priority interrupt_handler(void)
         TMR3IF=0;
     }
     
+    //INT interrupt
     if (INT1IF || INT2IF) {
         unsigned char currentReading = MA_Tacho0 | (MA_Tacho1 << 1);
         if (lastATach0[0] == 0 && lastATach0[1] == 0) {
@@ -125,6 +126,7 @@ void interrupt low_priority interrupt_handler(void)
         INT2IF = 0;
     }
 }
+
 void wait_for_10ms(unsigned long no_of_10ms)
 {
     time_10ms = 0;
@@ -134,9 +136,9 @@ void wait_for_10ms(unsigned long no_of_10ms)
 void main (void)
 {  
     Initialize();
-    
 
     __delay_ms(19); //max value
+    
     while (1)
     {
 #ifdef PCB_BOARD_VERIFY_LED
@@ -146,8 +148,6 @@ void main (void)
         wait_for_10ms(50);
 #else
         Process_Uart_Rx_Buffer();
-        //PIC_Motor_Control(MOTOR_A, MOTOR_CONTROL_FW, CMD_Buffer[CMD_POS_DATA1]);
-        
 #endif
     }
 }
@@ -158,7 +158,6 @@ static void Process_Uart_Rx_Buffer(void)
     {
         unsigned char i = 0;
         unsigned char address = 0;
-        int aInt=0;
         char str[15];
         
         // get data
@@ -182,8 +181,6 @@ static void Process_Uart_Rx_Buffer(void)
             if ((CMD_Buffer[CMD_POS_ADDR] == address)||(CMD_Buffer[CMD_POS_ADDR] == GLOBAL_ADDRESS))
             {
                 // Execute Command ...
-
-                
                 switch (CMD_Buffer[CMD_POS_CMD])
                 {
                     case CMD_MOTOR_A_FW:
@@ -210,6 +207,12 @@ static void Process_Uart_Rx_Buffer(void)
                         PIC_Motor_Control(MOTOR_B, MOTOR_CONTROL_STOP, CMD_Buffer[CMD_POS_DATA1]);
                         currentDirection=CMD_MOTOR_B_STOP;
                         break;
+                    case CMD_MOTOR_READ_COUNT:
+                        str[0] = MotorA_Position & 0xff;
+                        str[1] = (MotorA_Position >> 8) & 0xff;
+                        //sprintf(str, "%d", MotorA_Position);
+                        serial_Putstr(str,2);
+                        break;
                     #ifndef NEW_PCB_BOARD
                     case CMD_CONTROL_LED:
                         if(CMD_Buffer[CMD_POS_DATA1])
@@ -224,12 +227,7 @@ static void Process_Uart_Rx_Buffer(void)
                     #endif
                     case CMD_RESET_MAIN_MCU:
                         //house-keeping here
-                        //aInt = MotorA_Position;
-                        str[0] = MotorA_Position & 0xff;
-                        str[1] = (MotorA_Position >> 8) & 0xff;
-                        //sprintf(str, "%d", MotorA_Position);
-                        serial_Putstr(str,2);
-                        //RESET();
+                        RESET();
                         break;
                     default:
                         break;

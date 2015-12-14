@@ -52,7 +52,6 @@ void serial_Putstr(const char *str, unsigned char length)
   }
   RS485_DE = DISABLE;
 }
-
 #else
 void serial_Putch(unsigned char byte) 
 {

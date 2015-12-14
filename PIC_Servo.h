@@ -197,6 +197,7 @@
 #define CMD_MOTOR_B_FW              0x04
 #define CMD_MOTOR_B_BW              0x05
 #define CMD_MOTOR_B_STOP            0x06
+#define CMD_MOTOR_READ_COUNT        0x07
 #ifndef NEW_PCB_BOARD
 #define CMD_CONTROL_LED             0x1E
 #endif
@@ -245,6 +246,13 @@ enum
 };
 
 
+extern long MotorA_Position;
+extern long motorACurrentPos;
+extern long motorATargetPos;
+extern long MotorB_Position;
+extern long motorBCurrentPos;
+extern long motorBTargetPos;
+
 //Functions
 //PIC_init.c
 void Initialize(void);
@@ -256,9 +264,3 @@ void serial_Putch(unsigned char byte);
 void serial_Putstr(const char *str, unsigned char length);
 //PIC_motor.c
 void PIC_Motor_Control(unsigned char target_A_B, unsigned char control, unsigned long position);
-unsigned long MotorA_Position = 30000;
-unsigned long motorACurrentPos = 0;
-unsigned long motorATargetPos = 0;
-unsigned long MotorB_Position = 30000;
-unsigned long motorBCurrentPos = 0;
-unsigned long motorBTargetPos = 0;
