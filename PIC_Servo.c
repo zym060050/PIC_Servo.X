@@ -217,9 +217,13 @@ static void Process_Uart_Rx_Buffer(void)
                     case CMD_MOTOR_READ_COUNT:
                         str[0] = MotorA_Position & 0xff;
                         str[1] = (MotorA_Position >> 8) & 0xff;
-                        str[2] = MotorB_Position & 0xff;
-                        str[3] = (MotorB_Position >> 8) & 0xff;
-                        serial_Putstr(str,4);
+                        str[2] = (MotorA_Position >> 16) & 0xff;
+                        str[3] = (MotorA_Position >> 24) & 0xff;
+                        str[4] = MotorB_Position & 0xff;
+                        str[5] = (MotorB_Position >> 8) & 0xff;
+                        str[6] = (MotorB_Position >> 16) & 0xff;
+                        str[7] = (MotorB_Position >> 24) & 0xff;
+                        serial_Putstr(str,8);
                         break;
                     case CMD_MOTOR_A_MOVE_TO:
                         PIC_Motor_Move_To_Position(MOTOR_A, (CMD_Buffer[CMD_POS_DATA1] | (CMD_Buffer[CMD_POS_DATA2]<<8)));

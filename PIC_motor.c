@@ -1,8 +1,8 @@
 #include "PIC_Servo.h"
 
-long MotorA_Position = 30000;
+long MotorA_Position = 0;
 long motorATargetPos = 0;
-long MotorB_Position = 30000;
+long MotorB_Position = 0;
 long motorBTargetPos = 0;
 
 void PIC_Motor_Control(unsigned char target_A_B, unsigned char control, unsigned long move_steps)
