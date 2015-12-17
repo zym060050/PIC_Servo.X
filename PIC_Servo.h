@@ -95,51 +95,51 @@
 
 // Defining IOs
 #ifndef NEW_PCB_BOARD
-#define PWMA         RC2
-#define PWMB         RC1
-#define M_A1         RB7
-#define M_A2         RB6
-#define M_B1         RB3
-#define M_B2         RB2
+#define PWMA         PORTCbits.RC2
+#define PWMB         PORTCbits.RC1
+#define M_A1         PORTBbits.RB7
+#define M_A2         PORTBbits.RB6
+#define M_B1         PORTBbits.RB3
+#define M_B2         PORTBbits.RB2
 
-#define MA_Tacho0    RA1
-#define MA_Tacho1    RA2
-#define MA_TachoXOR  RA4
-#define MB_Tacho0    RA3
-#define MB_Tacho1    RA5
-#define MB_TachoXOR  RC0
+#define MA_Tacho0    PORTAbits.RA1
+#define MA_Tacho1    PORTAbits.RA2
+#define MA_TachoXOR  PORTAbits.RA4
+#define MB_Tacho0    PORTAbits.RA3
+#define MB_Tacho1    PORTAbits.RA5
+#define MB_TachoXOR  PORTCbits.RC0
 
-#define BOARD_ID     RE3
-#define RS485_DE     RB5 //RS485 write_enable active high, DE and RE shorted.
+#define BOARD_ID     PORTEbits.RE3
+#define RS485_DE     PORTBbits.RB5 //RS485 write_enable active high, DE and RE shorted.
 
-#define LED_STATUS   RA0
+#define LED_STATUS   PORTAbits.RA0
 #else
 //new board
-#define PWMA         RC2
-#define PWMB         RC1
-#define M_A1         RB7
-#define M_A2         RB6
-#define M_B1         RB5
-#define M_B2         RB4
+#define PWMA         PORTCbits.RC2
+#define PWMB         PORTCbits.RC1
+#define M_A1         PORTBbits.RB7
+#define M_A2         PORTBbits.RB6
+#define M_B1         PORTBbits.RB5
+#define M_B2         PORTBbits.RB4
 
-#define MA_Tacho0    RA1
-#define MA_Tacho1    RA2
-#define MA_TachoXOR  RA4
-#define MB_Tacho0    RA3
-#define MB_Tacho1    RA5
-#define MB_TachoXOR  RC0
+#define MA_Tacho0    PORTAbits.RA1
+#define MA_Tacho1    PORTAbits.RA2
+#define MA_TachoXOR  PORTAbits.RA4
+#define MB_Tacho0    PORTAbits.RA3
+#define MB_Tacho1    PORTAbits.RA5
+#define MB_TachoXOR  PORTCbits.RC0
 
-#define BOARD_ID     RB3
-#define RS485_DE     RC5 //RS485 write_enable active high, DE and RE shorted.
+#define BOARD_ID     PORTBbits.RB3
+#define RS485_DE     PORTCbits.RC5 //RS485 write_enable active high, DE and RE shorted.
 #ifdef PCB_BOARD_VERIFY_LED
 #define LED_STATUS   RS485_DE
 #endif
 
-#define SPARE_IN     RE3
-#define EXT_INTIO    RB2
-#define EXT_INT1     RB1
-#define EXT_INT0     RB0
-#define VMOT_MON     RA0
+#define SPARE_IN     PORTEbits.RE3
+#define EXT_INTIO    PORTBbits.RB2
+#define EXT_INT1     PORTBbits.RB1
+#define EXT_INT0     PORTBbits.RB0
+#define VMOT_MON     PORTAbits.RA0
 #endif
 
 
