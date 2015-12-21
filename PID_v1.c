@@ -6,7 +6,7 @@
  *    The parameters specified here are those for for which we can't set up 
  *    reliable defaults, so we need to have the user set them.
  ***************************************************************************/
-PID(double* Input, double* Output, double* Setpoint,
+void PID(double* Input, double* Output, double* Setpoint,
         double Kp, double Ki, double Kd, int ControllerDirection)
 {
 	
@@ -15,7 +15,7 @@ PID(double* Input, double* Output, double* Setpoint,
     mySetpoint = Setpoint;
 	inAuto = 0;
 	
-	PID_SetOutputLimits(0, 80);				//default output limit corresponds to 
+	PID_SetOutputLimits(-80, 80);				//default output limit corresponds to 
 												//the arduino pwm limits
 
     SampleTime = 100;							//default Controller Sample Time is 0.1 seconds
@@ -138,7 +138,7 @@ void PID_SetMode(int Mode)
     bool newAuto = (Mode == AUTOMATIC);
     if(newAuto == !inAuto)
     {  /*we just went from manual to auto*/
-        Initialize();
+        PID_Initialize();
     }
     inAuto = newAuto;
 }

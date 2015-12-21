@@ -10,7 +10,7 @@
 #define MOTOR_PID_KD    0.1207317073
 
   //commonly used functions **************************************************************************
-PID(double*, double*, double*, // * constructor.  links the PID to the Input, Output, and 
+void PID(double*, double*, double*, // * constructor.  links the PID to the Input, Output, and 
         double, double, double, int); //   Setpoint.  Initial tuning parameters are also set here
 
 void PID_SetMode(int Mode); // * sets PID to either Manual (0) or Auto (non-0)

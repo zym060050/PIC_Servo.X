@@ -7,7 +7,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "PIC_Servo.h"
-#include "PID_v1.h"
 
 //This session is must if use Tinybld as it creates a GoTo instruction at start,
 void interrupt Do_goto(void)
@@ -26,10 +25,6 @@ static volatile unsigned char  UARTBuffer_RX[UART_BUFFER_SIZE][UART_BUFFER_DATA_
 //Command Buffer
 static volatile unsigned char UART_Buffer_Process_Index = 0;
 unsigned char CMD_Buffer[UART_BUFFER_DATA_SIZE];
-
-double test_output = 0;
-double test_setpoint = 0;
-double motorA_pos = 0;
 
 // function declare
 static void Process_Uart_Rx_Buffer(void);
@@ -65,11 +60,9 @@ void interrupt low_priority interrupt_handler(void)
         time_10ms++;
         TMR3L = T3_START_COUNT_LO;
         TMR3H = T3_START_COUNT_HI;
-        motorA_pos=MotorA_Position;
-        test_setpoint=motorATargetPos;
-        PID(&motorA_pos, &test_output, &test_setpoint,MOTOR_PID_KP,MOTOR_PID_KI, MOTOR_PID_KD, 0);
-        PID_Compute();
-        CCPR1L=test_output;
+#ifdef ENABLE_PID_CONTROL
+        PIC_Motor_PID_Loop();
+#endif
         TMR3IF=0;
     }
     
@@ -81,19 +74,37 @@ void interrupt low_priority interrupt_handler(void)
         {
             //FW
             MotorA_Position++;
-            if (MotorA_Position >= motorATargetPos) {
+#ifndef ENABLE_PID_CONTROL
+            //speed control
+            if(MotorA_Position<motorATargetPos)
+            {
+                PIC_Motor_Speed_Configure(MOTOR_A, motorATargetPos-MotorA_Position);
+            }
+            //stop check
+            if (MotorA_Position >= motorATargetPos)
+            {
                 //moving FW stop
                 PIC_Motor_Control(MOTOR_A, MOTOR_CONTROL_STOP, 0);
             }
+#endif
         }
         else
         {
             //BW
             MotorA_Position--;
-            if (MotorA_Position <= motorATargetPos) {
+#ifndef ENABLE_PID_CONTROL
+            //speed control
+            if(MotorA_Position>motorATargetPos)
+            {
+                PIC_Motor_Speed_Configure(MOTOR_A, MotorA_Position-motorATargetPos);
+            }
+            //stop check
+            if (MotorA_Position <= motorATargetPos)
+            {
                 //moving BW stop
                 PIC_Motor_Control(MOTOR_A, MOTOR_CONTROL_STOP, 0);
             }
+#endif
         }
         INT2IF = 0;
     }
@@ -104,19 +115,37 @@ void interrupt low_priority interrupt_handler(void)
         {
             //FW
             MotorB_Position++;
-            if (MotorB_Position >= motorBTargetPos) {
+#ifndef ENABLE_PID_CONTROL
+            //speed control
+            if(MotorB_Position<motorBTargetPos)
+            {
+                PIC_Motor_Speed_Configure(MOTOR_B, motorBTargetPos-MotorB_Position);
+            }
+            //stop check
+            if (MotorB_Position >= motorBTargetPos)
+            {
                 //moving FW stop
                 PIC_Motor_Control(MOTOR_B, MOTOR_CONTROL_STOP, 0);
             }
+#endif
         }
         else
         {
             //BW
             MotorB_Position--;
-            if (MotorB_Position <= motorBTargetPos) {
+#ifndef ENABLE_PID_CONTROL
+            //speed control
+            if(MotorB_Position>motorBTargetPos)
+            {
+                PIC_Motor_Speed_Configure(MOTOR_B, MotorB_Position-motorBTargetPos);
+            }
+            //stop check
+            if (MotorB_Position <= motorBTargetPos)
+            {
                 //moving BW stop
                 PIC_Motor_Control(MOTOR_B, MOTOR_CONTROL_STOP, 0);
             }
+#endif
         }
         INT1IF = 0;
     }
@@ -199,9 +228,19 @@ static void Process_Uart_Rx_Buffer(void)
                     case CMD_MOTOR_READ_COUNT:
                         str[0] = MotorA_Position & 0xff;
                         str[1] = (MotorA_Position >> 8) & 0xff;
-                        str[2] = MotorB_Position & 0xff;
-                        str[3] = (MotorB_Position >> 8) & 0xff;
-                        serial_Putstr(str,4);
+                        str[2] = (MotorA_Position >> 16) & 0xff;
+                        str[3] = (MotorA_Position >> 24) & 0xff;
+                        str[4] = MotorB_Position & 0xff;
+                        str[5] = (MotorB_Position >> 8) & 0xff;
+                        str[6] = (MotorB_Position >> 16) & 0xff;
+                        str[7] = (MotorB_Position >> 24) & 0xff;
+                        serial_Putstr(str,8);
+                        break;
+                    case CMD_MOTOR_A_MOVE_TO:
+                        PIC_Motor_Move_To_Position(MOTOR_A, (CMD_Buffer[CMD_POS_DATA1] | (CMD_Buffer[CMD_POS_DATA2]<<8)));
+                        break;
+                    case CMD_MOTOR_B_MOVE_TO:
+                        PIC_Motor_Move_To_Position(MOTOR_B, (CMD_Buffer[CMD_POS_DATA1] | (CMD_Buffer[CMD_POS_DATA2]<<8)));
                         break;
                     #ifndef NEW_PCB_BOARD
                     case CMD_CONTROL_LED:
