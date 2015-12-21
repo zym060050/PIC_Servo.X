@@ -6,23 +6,23 @@
  *    The parameters specified here are those for for which we can't set up 
  *    reliable defaults, so we need to have the user set them.
  ***************************************************************************/
-void PID(double* Input, double* Output, double* Setpoint,
+void PID_PID(PID *target, double* Input, double* Output, double* Setpoint,
         double Kp, double Ki, double Kd, int ControllerDirection)
 {
 	
-    myOutput = Output;
-    myInput = Input;
-    mySetpoint = Setpoint;
-	inAuto = 0;
+    target->myOutput = Output;
+    target->myInput = Input;
+    target->mySetpoint = Setpoint;
+	target->inAuto = 0;
 	
-	PID_SetOutputLimits(-80, 80);				//default output limit corresponds to 
+	PID_SetOutputLimits(target, -80, 80);				//default output limit corresponds to 
 												//the arduino pwm limits
 
-    SampleTime = 100;							//default Controller Sample Time is 0.1 seconds
+    target->SampleTime = 100;							//default Controller Sample Time is 0.1 seconds
     
-    PID_SetControllerDirection(ControllerDirection);
-    PID_SetTunings(Kp, Ki, Kd);
-    PID_SetSampleTime(10);
+    PID_SetControllerDirection(target, ControllerDirection);
+    PID_SetTunings(target, Kp, Ki, Kd);
+    PID_SetSampleTime(target, 10);
 
     //lastTime = millis()-SampleTime;				
 }
@@ -34,7 +34,7 @@ void PID(double* Input, double* Output, double* Setpoint,
  *   pid Output needs to be computed.  returns true when the output is computed,
  *   false when nothing has been done.
  **********************************************************************************/ 
-void PID_Compute()
+void PID_Compute(PID *target)
 {
    //if(!inAuto) return 0;
    //unsigned long now = millis();
@@ -42,22 +42,22 @@ void PID_Compute()
    //if(timeChange>=SampleTime)
    //{
       /*Compute all the working error variables*/
-	  double input = *myInput;
-      double error = *mySetpoint - input;
-      ITerm+= (ki * error);
-      if(ITerm > outMax) ITerm= outMax;
-      else if(ITerm < outMin) ITerm= outMin;
-      double dInput = (input - lastInput);
+	  double input = *(target->myInput);
+      double error = *(target->mySetpoint) - input;
+      target->ITerm+= (target->ki * error);
+      if(target->ITerm >target->outMax) target->ITerm= target->outMax;
+      else if(target->ITerm < target->outMin) target->ITerm= target->outMin;
+      double dInput = (input - target->lastInput);
  
       /*Compute PID Output*/
-      double output = kp * error + ITerm- kd * dInput;
+      double output = target->kp * error + target->ITerm- target->kd * dInput;
       
-	  if(output > outMax) output = outMax;
-      else if(output < outMin) output = outMin;
-	  *myOutput = output;
+	  if(output > target->outMax) output = target->outMax;
+      else if(output < target->outMin) output = target->outMin;
+	  *(target->myOutput) = output;
 	  
       /*Remember some variables for next time*/
-      lastInput = input;
+      target->lastInput = input;
       //lastTime = now;
 	  //return 1;
    //}
@@ -70,37 +70,37 @@ void PID_Compute()
  * it's called automatically from the constructor, but tunings can also
  * be adjusted on the fly during normal operation
  ******************************************************************************/ 
-void PID_SetTunings(double Kp, double Ki, double Kd)
+void PID_SetTunings(PID *target, double Kp, double Ki, double Kd)
 {
    if (Kp<0 || Ki<0 || Kd<0) return;
  
-   dispKp = Kp; dispKi = Ki; dispKd = Kd;
+   target->dispKp = Kp; target->dispKi = Ki; target->dispKd = Kd;
    
-   double SampleTimeInSec = ((double)SampleTime)/1000;  
-   kp = Kp;
-   ki = Ki * SampleTimeInSec;
-   kd = Kd / SampleTimeInSec;
+   double SampleTimeInSec = ((double)target->SampleTime)/1000;  
+   target->kp = Kp;
+   target->ki = Ki * SampleTimeInSec;
+   target->kd = Kd / SampleTimeInSec;
  
-  if(controllerDirection ==REVERSE)
+  if(target->controllerDirection ==REVERSE)
    {
-      kp = (0 - kp);
-      ki = (0 - ki);
-      kd = (0 - kd);
+      target->kp = (0 - target->kp);
+      target->ki = (0 - target->ki);
+      target->kd = (0 - target->kd);
    }
 }
   
 /* SetSampleTime(...) *********************************************************
  * sets the period, in Milliseconds, at which the calculation is performed	
  ******************************************************************************/
-void PID_SetSampleTime(int NewSampleTime)
+void PID_SetSampleTime(PID *target, int NewSampleTime)
 {
    if (NewSampleTime > 0)
    {
       double ratio  = (double)NewSampleTime
-                      / (double)SampleTime;
-      ki *= ratio;
-      kd /= ratio;
-      SampleTime = (unsigned long)NewSampleTime;
+                      / (double)target->SampleTime;
+      target->ki *= ratio;
+      target->kd /= ratio;
+      target->SampleTime = (unsigned long)NewSampleTime;
    }
 }
  
@@ -112,19 +112,19 @@ void PID_SetSampleTime(int NewSampleTime)
  *  want to clamp it from 0-125.  who knows.  at any rate, that can all be done
  *  here.
  **************************************************************************/
-void PID_SetOutputLimits(double Min, double Max)
+void PID_SetOutputLimits(PID *target, double Min, double Max)
 {
    if(Min >= Max) return;
-   outMin = Min;
-   outMax = Max;
+   target->outMin = Min;
+   target->outMax = Max;
  
-   if(inAuto)
+   if(target->inAuto)
    {
-	   if(*myOutput > outMax) *myOutput = outMax;
-	   else if(*myOutput < outMin) *myOutput = outMin;
+	   if(*(target->myOutput) > target->outMax) *(target->myOutput) = target->outMax;
+	   else if(*(target->myOutput) < target->outMin) *(target->myOutput) = target->outMin;
 	 
-	   if(ITerm > outMax) ITerm= outMax;
-	   else if(ITerm < outMin) ITerm= outMin;
+	   if(target->ITerm > target->outMax) target->ITerm= target->outMax;
+	   else if(target->ITerm < target->outMin) target->ITerm= target->outMin;
    }
 }
 
@@ -133,26 +133,26 @@ void PID_SetOutputLimits(double Min, double Max)
  * when the transition from manual to auto occurs, the controller is
  * automatically initialized
  ******************************************************************************/ 
-void PID_SetMode(int Mode)
+void PID_SetMode(PID *target, int Mode)
 {
     bool newAuto = (Mode == AUTOMATIC);
-    if(newAuto == !inAuto)
+    if(newAuto == !target->inAuto)
     {  /*we just went from manual to auto*/
-        PID_Initialize();
+        PID_Initialize(target);
     }
-    inAuto = newAuto;
+    target->inAuto = newAuto;
 }
  
 /* Initialize()****************************************************************
  *	does all the things that need to happen to ensure a bumpless transfer
  *  from manual to automatic mode.
  ******************************************************************************/ 
-void PID_Initialize()
+void PID_Initialize(PID *target)
 {
-   ITerm = *myOutput;
-   lastInput = *myInput;
-   if(ITerm > outMax) ITerm = outMax;
-   else if(ITerm < outMin) ITerm = outMin;
+   target->ITerm = *(target->myOutput);
+   target->lastInput = *(target->myInput);
+   if(target->ITerm > target->outMax) target->ITerm = target->outMax;
+   else if(target->ITerm < target->outMin) target->ITerm = target->outMin;
 }
 
 /* SetControllerDirection(...)*************************************************
@@ -161,15 +161,15 @@ void PID_Initialize()
  * know which one, because otherwise we may increase the output when we should
  * be decreasing.  This is called from the constructor.
  ******************************************************************************/
-void PID_SetControllerDirection(int Direction)
+void PID_SetControllerDirection(PID *target, int Direction)
 {
-   if(inAuto && Direction !=controllerDirection)
+   if(target->inAuto && Direction !=target->controllerDirection)
    {
-	  kp = (0 - kp);
-      ki = (0 - ki);
-      kd = (0 - kd);
+	  target->kp = (0 - target->kp);
+      target->ki = (0 - target->ki);
+      target->kd = (0 - target->kd);
    }   
-   controllerDirection = Direction;
+   target->controllerDirection = Direction;
 }
 
 /* Status Funcions*************************************************************
@@ -177,10 +177,10 @@ void PID_SetControllerDirection(int Direction)
  * functions query the internal state of the PID.  they're here for display 
  * purposes.  this are the functions the PID Front-end uses for example
  ******************************************************************************/
-double PID_GetKp(){ return  dispKp; }
-double PID_GetKi(){ return  dispKi;}
-double PID_GetKd(){ return  dispKd;}
-int PID_GetMode(){ return  inAuto ? AUTOMATIC : MANUAL;}
-int PID_GetDirection(){ return controllerDirection;}
+double PID_GetKp(PID *target){ return  target->dispKp; }
+double PID_GetKi(PID *target){ return  target->dispKi;}
+double PID_GetKd(PID *target){ return  target->dispKd;}
+int PID_GetMode(PID *target){ return  target->inAuto ? AUTOMATIC : MANUAL;}
+int PID_GetDirection(PID *target){ return target->controllerDirection;}
 
 

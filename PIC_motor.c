@@ -3,9 +3,14 @@
 #ifdef ENABLE_PID_CONTROL
 #include "PID_v1.h"
 
+PID MotorA_PID;
 double MOTOR_A_PID_OUTPUT = 0;
 double motorA_setpoint = 0;
 double motorA_pos = 0;
+PID MotorB_PID;
+double MOTOR_B_PID_OUTPUT = 0;
+double motorB_setpoint = 0;
+double motorB_pos = 0;
 #endif
 
 long MotorA_Position = 0;
@@ -174,8 +179,8 @@ void PIC_Motor_PID_Loop()
     {
         motorA_pos=MotorA_Position;
         motorA_setpoint=motorATargetPos;
-        PID(&motorA_pos, &MOTOR_A_PID_OUTPUT, &motorA_setpoint,MOTOR_PID_KP,MOTOR_PID_KI, MOTOR_PID_KD, DIRECT);
-        PID_Compute();
+        PID_PID(&MotorA_PID, &motorA_pos, &MOTOR_A_PID_OUTPUT, &motorA_setpoint, MOTOR_PID_KP, MOTOR_PID_KI, MOTOR_PID_KD, DIRECT);
+        PID_Compute(&MotorA_PID);
         if(MOTOR_A_PID_OUTPUT==0)
         {
             PIC_Motor_STOP(MOTOR_A);
@@ -192,7 +197,31 @@ void PIC_Motor_PID_Loop()
         CCPR1L=(unsigned char)(MOTOR_A_PID_OUTPUT);
     }
     /*Motor B PID*/
-    //TODO:
+    if(MotorB_Position==motorBTargetPos)
+    {
+        PIC_Motor_STOP(MOTOR_B);
+    }
+    else
+    {
+        motorB_pos=MotorB_Position;
+        motorB_setpoint=motorBTargetPos;
+        PID_PID(&MotorB_PID, &motorB_pos, &MOTOR_B_PID_OUTPUT, &motorB_setpoint, MOTOR_PID_KP, MOTOR_PID_KI, MOTOR_PID_KD, DIRECT);
+        PID_Compute(&MotorB_PID);
+        if(MOTOR_B_PID_OUTPUT==0)
+        {
+            PIC_Motor_STOP(MOTOR_B);
+        }
+        else if(MOTOR_B_PID_OUTPUT>0)
+        {
+            PIC_Motor_FW(MOTOR_B);
+        }
+        else
+        {
+            PIC_Motor_BW(MOTOR_B);
+            MOTOR_B_PID_OUTPUT = MOTOR_B_PID_OUTPUT*(-1);
+        }
+        CCPR2L=(unsigned char)(MOTOR_B_PID_OUTPUT);
+    }
 }
 
 void PIC_Motor_FW(unsigned char target_A_B)
