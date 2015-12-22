@@ -155,7 +155,7 @@ void Initialize(void)
     RCIE = DISABLE;
 #else
     RCIE = ENABLE;
-    RCIP = 0;
+    RCIP = 1; //priority high
     RCIF = CLEAR;
 #endif
     // Enable pripheral Interrupts
