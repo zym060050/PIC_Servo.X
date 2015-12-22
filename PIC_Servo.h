@@ -5,8 +5,11 @@
 //device is selected in project property
 //#include <PIC18F2520.h> 
 
+/*Hardware Board*/
 #define xBREAD_BOARD_SETUP
 #define NEW_PCB_BOARD
+/*Feature Switch*/
+#define ENABLE_PID_CONTROL
 /*Testing Feature Switch*/
 #define xPCB_BOARD_VERIFY_LED    // Blink LED for PCB Board verification
 
@@ -259,6 +262,10 @@ extern long motorATargetPos;
 extern long MotorB_Position;
 extern long motorBTargetPos;
 
+#ifndef ENABLE_PID_CONTROL
+#define MOTOR_STOP_CHECK_THRESHOLD  2
+#endif
+
 //Functions
 //PIC_init.c
 void Initialize(void);
@@ -272,3 +279,9 @@ void serial_Putstr(const char *str, unsigned char length);
 void PIC_Motor_Control(unsigned char target_A_B, unsigned char control, unsigned long move_steps);
 void PIC_Motor_Move_To_Position(unsigned char target_A_B, long position);
 void PIC_Motor_Speed_Configure(unsigned char target_A_B, unsigned long steps_delta);
+#ifdef ENABLE_PID_CONTROL
+void PIC_Motor_PID_Loop();
+#endif
+void PIC_Motor_FW(unsigned char target_A_B);
+void PIC_Motor_BW(unsigned char target_A_B);
+void PIC_Motor_STOP(unsigned char target_A_B);

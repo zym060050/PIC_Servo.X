@@ -1,5 +1,18 @@
 #include "PIC_Servo.h"
 
+#ifdef ENABLE_PID_CONTROL
+#include "PID_v1.h"
+
+PID MotorA_PID;
+double MOTOR_A_PID_OUTPUT = 0;
+double motorA_setpoint = 0;
+double motorA_pos = 0;
+PID MotorB_PID;
+double MOTOR_B_PID_OUTPUT = 0;
+double motorB_setpoint = 0;
+double motorB_pos = 0;
+#endif
+
 long MotorA_Position = 0;
 long motorATargetPos = 0;
 long MotorB_Position = 0;
@@ -52,7 +65,9 @@ void PIC_Motor_Control(unsigned char target_A_B, unsigned char control, unsigned
     
     if(target_A_B == MOTOR_A)
     {
+#ifndef ENABLE_PID_CONTROL
         PIC_Motor_Speed_Configure(MOTOR_A, move_steps);
+#endif
         //float stop first
         M_A1 = ENABLE_ACTIVE_LOW;
         M_A2 = ENABLE_ACTIVE_LOW;
@@ -62,7 +77,9 @@ void PIC_Motor_Control(unsigned char target_A_B, unsigned char control, unsigned
     }
     else if(target_A_B == MOTOR_B)
     {
+#ifndef ENABLE_PID_CONTROL
         PIC_Motor_Speed_Configure(MOTOR_B, move_steps);
+#endif
         //float stop first
         M_B1 = ENABLE_ACTIVE_LOW;
         M_B2 = ENABLE_ACTIVE_LOW;
@@ -74,6 +91,46 @@ void PIC_Motor_Control(unsigned char target_A_B, unsigned char control, unsigned
 
 void PIC_Motor_Move_To_Position(unsigned char target_A_B, long position)
 {
+#if 1
+    if(target_A_B == MOTOR_A)
+    {
+        PIC_Motor_STOP(MOTOR_A);
+        motorATargetPos = position;
+        if(position>MotorA_Position)
+        {
+#ifndef ENABLE_PID_CONTROL
+            PIC_Motor_Speed_Configure(MOTOR_A, (position-MotorA_Position));
+#endif
+            PIC_Motor_FW(MOTOR_A);
+        }
+        else if (position < MotorA_Position)
+        {
+#ifndef ENABLE_PID_CONTROL
+            PIC_Motor_Speed_Configure(MOTOR_A, (MotorA_Position-position));
+#endif
+            PIC_Motor_BW(MOTOR_A);
+        }
+    }
+    else if(target_A_B == MOTOR_B)
+    {
+        PIC_Motor_STOP(MOTOR_B);
+        motorBTargetPos = position;
+        if(position>MotorB_Position)
+        {
+#ifndef ENABLE_PID_CONTROL
+            PIC_Motor_Speed_Configure(MOTOR_B, (position-MotorB_Position));
+#endif
+            PIC_Motor_FW(MOTOR_B);
+        }
+        else if (position < MotorB_Position)
+        {
+#ifndef ENABLE_PID_CONTROL
+            PIC_Motor_Speed_Configure(MOTOR_B, (MotorB_Position-position));
+#endif
+            PIC_Motor_STOP(MOTOR_B);
+        }
+    }
+#else
     if(target_A_B == MOTOR_A)
     {
         if(position>MotorA_Position)
@@ -96,6 +153,7 @@ void PIC_Motor_Move_To_Position(unsigned char target_A_B, long position)
             PIC_Motor_Control(target_A_B, MOTOR_CONTROL_BW, (MotorB_Position-position));
         }
     }
+#endif
 }
 
 void PIC_Motor_Speed_Configure(unsigned char target_A_B, unsigned long steps_delta)
@@ -147,5 +205,105 @@ void PIC_Motor_Speed_Configure(unsigned char target_A_B, unsigned long steps_del
             if (CCPR2L != MOTOR_SUPER_SLOW_SPEED)
                 CCPR2L = MOTOR_SUPER_SLOW_SPEED;
         }
+    }
+}
+
+#ifdef ENABLE_PID_CONTROL
+void PIC_Motor_PID_Loop()
+{
+    /*Motor A PID*/
+    if(MotorA_Position==motorATargetPos)
+    {
+        PIC_Motor_STOP(MOTOR_A);
+    }
+    else
+    {
+        motorA_pos=MotorA_Position;
+        motorA_setpoint=motorATargetPos;
+        PID_PID(&MotorA_PID, &motorA_pos, &MOTOR_A_PID_OUTPUT, &motorA_setpoint, MOTOR_PID_KP, MOTOR_PID_KI, MOTOR_PID_KD, DIRECT);
+        PID_Compute(&MotorA_PID);
+        if(MOTOR_A_PID_OUTPUT==0)
+        {
+            PIC_Motor_STOP(MOTOR_A);
+        }
+        else if(MOTOR_A_PID_OUTPUT>0)
+        {
+            PIC_Motor_FW(MOTOR_A);
+        }
+        else
+        {
+            PIC_Motor_BW(MOTOR_A);
+            MOTOR_A_PID_OUTPUT = MOTOR_A_PID_OUTPUT*(-1);
+        }
+        CCPR1L=(unsigned char)(MOTOR_A_PID_OUTPUT);
+    }
+    /*Motor B PID*/
+    if(MotorB_Position==motorBTargetPos)
+    {
+        PIC_Motor_STOP(MOTOR_B);
+    }
+    else
+    {
+        motorB_pos=MotorB_Position;
+        motorB_setpoint=motorBTargetPos;
+        PID_PID(&MotorB_PID, &motorB_pos, &MOTOR_B_PID_OUTPUT, &motorB_setpoint, MOTOR_PID_KP, MOTOR_PID_KI, MOTOR_PID_KD, DIRECT);
+        PID_Compute(&MotorB_PID);
+        if(MOTOR_B_PID_OUTPUT==0)
+        {
+            PIC_Motor_STOP(MOTOR_B);
+        }
+        else if(MOTOR_B_PID_OUTPUT>0)
+        {
+            PIC_Motor_FW(MOTOR_B);
+        }
+        else
+        {
+            PIC_Motor_BW(MOTOR_B);
+            MOTOR_B_PID_OUTPUT = MOTOR_B_PID_OUTPUT*(-1);
+        }
+        CCPR2L=(unsigned char)(MOTOR_B_PID_OUTPUT);
+    }
+}
+#endif
+
+void PIC_Motor_FW(unsigned char target_A_B)
+{
+    if(target_A_B == MOTOR_A)
+    {
+        M_A1 = ENABLE_ACTIVE_LOW;
+        M_A2 = DISABLE_ACTIVE_LOW;
+    }
+    else if(target_A_B == MOTOR_B)
+    {
+        M_B1 = ENABLE_ACTIVE_LOW;
+        M_B2 = DISABLE_ACTIVE_LOW;
+    }
+}
+
+void PIC_Motor_BW(unsigned char target_A_B)
+{
+    if(target_A_B == MOTOR_A)
+    {
+        M_A1 = DISABLE_ACTIVE_LOW;
+        M_A2 = ENABLE_ACTIVE_LOW;
+    }
+    else if(target_A_B == MOTOR_B)
+    {
+        M_B1 = DISABLE_ACTIVE_LOW;
+        M_B2 = ENABLE_ACTIVE_LOW;
+    }
+}
+
+void PIC_Motor_STOP(unsigned char target_A_B)
+{
+    if(target_A_B == MOTOR_A)
+    {
+        M_A1 = DISABLE_ACTIVE_LOW;
+        M_A2 = DISABLE_ACTIVE_LOW;
+    }
+    else if(target_A_B == MOTOR_B)
+    {
+        M_B1 = DISABLE_ACTIVE_LOW;
+        M_B2 = DISABLE_ACTIVE_LOW;
     }
 }
