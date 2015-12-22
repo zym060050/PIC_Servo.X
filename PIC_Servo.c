@@ -8,11 +8,11 @@
 #include <stdlib.h>
 #include "PIC_Servo.h"
 
-//This session is must if use Tinybld as it creates a GoTo instruction at start,
-void interrupt Do_goto(void)
-{
-}
-//to avoid overwriting the bootloader
+////This session is must if use Tinybld as it creates a GoTo instruction at start,
+//void interrupt Do_goto(void)
+//{
+//}
+////to avoid overwriting the bootloader
 
 //Counter
 volatile unsigned long time_10ms;
@@ -29,43 +29,9 @@ unsigned char CMD_Buffer[UART_BUFFER_DATA_SIZE];
 // function declare
 static void Process_Uart_Rx_Buffer(void);
 
-// low_priority interrupt handler
-void interrupt low_priority interrupt_handler(void)          
+// high_priority interrupt handler
+void high_priority interrupt high_priority_interrupt_handler(void)
 {
-    //uart interrupt
-    if (RCIE && RCIF)
-    {
-        UARTBuffer_RX[UART_Buffer_Index_Count][UART_Buffer_Data_Count++] = RCREG;
-        if((UART_Buffer_Data_Count == 1) && (UARTBuffer_RX[UART_Buffer_Index_Count][0] != SOH))
-        {
-            UART_Buffer_Data_Count = 0;
-        }
-        else
-        {
-            if (UART_Buffer_Data_Count == UART_BUFFER_DATA_SIZE)
-            {
-                UART_Buffer_Index_Count++;
-                if(UART_Buffer_Index_Count == UART_BUFFER_SIZE)
-                {
-                    UART_Buffer_Index_Count =0;
-                }
-                UART_Buffer_Data_Count = 0;
-            }
-        }
-    }
-    
-    //timer3 interrupt
-    if (TMR3IE && TMR3IF)
-    {
-        time_10ms++;
-        TMR3L = T3_START_COUNT_LO;
-        TMR3H = T3_START_COUNT_HI;
-#ifdef ENABLE_PID_CONTROL
-        PIC_Motor_PID_Loop();
-#endif
-        TMR3IF=0;
-    }
-    
     //INT interrupt
     /*Motor A Tacho 0*/
     if(INT2IE && INT2IF)
@@ -172,6 +138,44 @@ void interrupt low_priority interrupt_handler(void)
 #endif
         }
         INT1IF = 0;
+    }
+}
+
+// low_priority interrupt handler
+void low_priority interrupt low_priority_interrupt_handler(void)
+{
+    //uart interrupt
+    if (RCIE && RCIF)
+    {
+        UARTBuffer_RX[UART_Buffer_Index_Count][UART_Buffer_Data_Count++] = RCREG;
+        if((UART_Buffer_Data_Count == 1) && (UARTBuffer_RX[UART_Buffer_Index_Count][0] != SOH))
+        {
+            UART_Buffer_Data_Count = 0;
+        }
+        else
+        {
+            if (UART_Buffer_Data_Count == UART_BUFFER_DATA_SIZE)
+            {
+                UART_Buffer_Index_Count++;
+                if(UART_Buffer_Index_Count == UART_BUFFER_SIZE)
+                {
+                    UART_Buffer_Index_Count =0;
+                }
+                UART_Buffer_Data_Count = 0;
+            }
+        }
+    }
+    
+    //timer3 interrupt
+    if (TMR3IE && TMR3IF)
+    {
+        time_10ms++;
+        TMR3L = T3_START_COUNT_LO;
+        TMR3H = T3_START_COUNT_HI;
+#ifdef ENABLE_PID_CONTROL
+        PIC_Motor_PID_Loop();
+#endif
+        TMR3IF=0;
     }
 }
 

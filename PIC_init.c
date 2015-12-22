@@ -47,9 +47,9 @@ void Initialize(void)
     INTCON3bits.INT1IF = 0; //reset interrupt flag                              /*Motor B Tacho 0*/
     INTCON3bits.INT2IF = 0; //reset interrupt flag                              /*Motor A Tacho 0*/
     
-    //INTCON2bits.TMR0IP = 0; //priority low                                    /*Motor A Tacho XOR*/
-    INTCON3bits.INT1IP = 0; //priority low                                      /*Motor B Tacho 0*/
-    INTCON3bits.INT2IP = 0; //priority low                                      /*Motor A Tacho 0*/
+    //INTCON2bits.TMR0IP = 1; //priority high                                   /*Motor A Tacho XOR*/
+    INTCON3bits.INT1IP = 1; //priority high                                     /*Motor B Tacho 0*/
+    INTCON3bits.INT2IP = 1; //priority high                                     /*Motor A Tacho 0*/
 #endif
     
     
