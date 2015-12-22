@@ -91,6 +91,46 @@ void PIC_Motor_Control(unsigned char target_A_B, unsigned char control, unsigned
 
 void PIC_Motor_Move_To_Position(unsigned char target_A_B, long position)
 {
+#if 1
+    if(target_A_B == MOTOR_A)
+    {
+        PIC_Motor_STOP(MOTOR_A);
+        motorATargetPos = position;
+        if(position>MotorA_Position)
+        {
+#ifndef ENABLE_PID_CONTROL
+            PIC_Motor_Speed_Configure(MOTOR_A, (position-MotorA_Position));
+#endif
+            PIC_Motor_FW(MOTOR_A);
+        }
+        else if (position < MotorA_Position)
+        {
+#ifndef ENABLE_PID_CONTROL
+            PIC_Motor_Speed_Configure(MOTOR_A, (MotorA_Position-position));
+#endif
+            PIC_Motor_BW(MOTOR_A);
+        }
+    }
+    else if(target_A_B == MOTOR_B)
+    {
+        PIC_Motor_STOP(MOTOR_B);
+        motorBTargetPos = position;
+        if(position>MotorB_Position)
+        {
+#ifndef ENABLE_PID_CONTROL
+            PIC_Motor_Speed_Configure(MOTOR_B, (position-MotorB_Position));
+#endif
+            PIC_Motor_FW(MOTOR_B);
+        }
+        else if (position < MotorB_Position)
+        {
+#ifndef ENABLE_PID_CONTROL
+            PIC_Motor_Speed_Configure(MOTOR_B, (MotorB_Position-position));
+#endif
+            PIC_Motor_STOP(MOTOR_B);
+        }
+    }
+#else
     if(target_A_B == MOTOR_A)
     {
         if(position>MotorA_Position)
@@ -113,6 +153,7 @@ void PIC_Motor_Move_To_Position(unsigned char target_A_B, long position)
             PIC_Motor_Control(target_A_B, MOTOR_CONTROL_BW, (MotorB_Position-position));
         }
     }
+#endif
 }
 
 void PIC_Motor_Speed_Configure(unsigned char target_A_B, unsigned long steps_delta)
@@ -223,6 +264,7 @@ void PIC_Motor_PID_Loop()
         CCPR2L=(unsigned char)(MOTOR_B_PID_OUTPUT);
     }
 }
+#endif
 
 void PIC_Motor_FW(unsigned char target_A_B)
 {
@@ -265,4 +307,3 @@ void PIC_Motor_STOP(unsigned char target_A_B)
         M_B2 = DISABLE_ACTIVE_LOW;
     }
 }
-#endif

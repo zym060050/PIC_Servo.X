@@ -83,8 +83,14 @@ void interrupt low_priority interrupt_handler(void)
             //stop check
             if (MotorA_Position >= motorATargetPos)
             {
-                //moving FW stop
-                PIC_Motor_Control(MOTOR_A, MOTOR_CONTROL_STOP, 0);
+                //this checking is to avoid the situation such that when motor is moving and motor move to instruction is given to move to reverse direction,
+                //without this checking, motor still have the Momentum after the move to instruction was given and next interrupt comes in cause motor to stop here.
+                //this applies to motor control without PID.
+                if ((MotorA_Position-motorATargetPos) < MOTOR_STOP_CHECK_THRESHOLD)
+                {
+                    //moving FW stop
+                    PIC_Motor_Control(MOTOR_A, MOTOR_CONTROL_STOP, 0);
+                }
             }
 #endif
         }
@@ -101,8 +107,14 @@ void interrupt low_priority interrupt_handler(void)
             //stop check
             if (MotorA_Position <= motorATargetPos)
             {
-                //moving BW stop
-                PIC_Motor_Control(MOTOR_A, MOTOR_CONTROL_STOP, 0);
+                //this checking is to avoid the situation such that when motor is moving and motor move to instruction is given to move to reverse direction,
+                //without this checking, motor still have the Momentum after the move to instruction was given and next interrupt comes in cause motor to stop here.
+                //this applies to motor control without PID.
+                if ((motorATargetPos-MotorA_Position) < MOTOR_STOP_CHECK_THRESHOLD)
+                {
+                    //moving BW stop
+                    PIC_Motor_Control(MOTOR_A, MOTOR_CONTROL_STOP, 0);
+                }
             }
 #endif
         }
@@ -124,8 +136,14 @@ void interrupt low_priority interrupt_handler(void)
             //stop check
             if (MotorB_Position >= motorBTargetPos)
             {
-                //moving FW stop
-                PIC_Motor_Control(MOTOR_B, MOTOR_CONTROL_STOP, 0);
+                //this checking is to avoid the situation such that when motor is moving and motor move to instruction is given to move to reverse direction,
+                //without this checking, motor still have the Momentum after the move to instruction was given and next interrupt comes in cause motor to stop here.
+                //this applies to motor control without PID.
+                if ((MotorB_Position-motorBTargetPos) < MOTOR_STOP_CHECK_THRESHOLD)
+                {
+                    //moving FW stop
+                    PIC_Motor_Control(MOTOR_B, MOTOR_CONTROL_STOP, 0);
+                }
             }
 #endif
         }
@@ -142,8 +160,14 @@ void interrupt low_priority interrupt_handler(void)
             //stop check
             if (MotorB_Position <= motorBTargetPos)
             {
-                //moving BW stop
-                PIC_Motor_Control(MOTOR_B, MOTOR_CONTROL_STOP, 0);
+                //this checking is to avoid the situation such that when motor is moving and motor move to instruction is given to move to reverse direction,
+                //without this checking, motor still have the Momentum after the move to instruction was given and next interrupt comes in cause motor to stop here.
+                //this applies to motor control without PID.
+                if ((motorBTargetPos-MotorB_Position) < MOTOR_STOP_CHECK_THRESHOLD)
+                {
+                    //moving BW stop
+                    PIC_Motor_Control(MOTOR_B, MOTOR_CONTROL_STOP, 0);
+                }
             }
 #endif
         }
