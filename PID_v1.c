@@ -1,6 +1,8 @@
-
+#include "PIC_Servo.h"
 #include "PID_v1.h"
 #include <stdbool.h>
+
+unsigned char PID_OUTPUT_LIMIT = MOTOR_MAX_SPEED;
 
 /*Constructor (...)*********************************************************
  *    The parameters specified here are those for for which we can't set up 
@@ -15,7 +17,7 @@ void PID_PID(PID *target, double* Input, double* Output, double* Setpoint,
     target->mySetpoint = Setpoint;
 	target->inAuto = 0;
 	
-	PID_SetOutputLimits(target, -80, 80);				//default output limit corresponds to 
+	PID_SetOutputLimits(target, (0-PID_OUTPUT_LIMIT), PID_OUTPUT_LIMIT);				//default output limit corresponds to 
 												//the arduino pwm limits
 
     target->SampleTime = 100;							//default Controller Sample Time is 0.1 seconds

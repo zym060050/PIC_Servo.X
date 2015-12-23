@@ -270,6 +270,14 @@ static void Process_Uart_Rx_Buffer(void)
                     case CMD_MOTOR_B_MOVE_TO:
                         PIC_Motor_Move_To_Position(MOTOR_B, (CMD_Buffer[CMD_POS_DATA1] | (CMD_Buffer[CMD_POS_DATA2]<<8)));
                         break;
+                    #ifdef ENABLE_PID_CONTROL
+                    case CMD_PID_OUTPUT_LIMIT:
+                        if (CMD_Buffer[CMD_POS_DATA1]>MOTOR_MAX_SPEED)
+                            PID_OUTPUT_LIMIT = MOTOR_MAX_SPEED;
+                        else
+                            PID_OUTPUT_LIMIT = CMD_Buffer[CMD_POS_DATA1];
+                        break;
+                    #endif
                     #ifndef NEW_PCB_BOARD
                     case CMD_CONTROL_LED:
                         if(CMD_Buffer[CMD_POS_DATA1])

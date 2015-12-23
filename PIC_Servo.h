@@ -203,6 +203,7 @@
 #define CMD_MOTOR_READ_COUNT        0x07
 #define CMD_MOTOR_A_MOVE_TO         0x08
 #define CMD_MOTOR_B_MOVE_TO         0x09
+#define CMD_PID_OUTPUT_LIMIT        0x0A
 #ifndef NEW_PCB_BOARD
 #define CMD_CONTROL_LED             0x1E
 #endif
@@ -261,6 +262,9 @@ extern long MotorA_Position;
 extern long motorATargetPos;
 extern long MotorB_Position;
 extern long motorBTargetPos;
+#ifdef ENABLE_PID_CONTROL
+extern unsigned char PID_OUTPUT_LIMIT;
+#endif
 
 #ifndef ENABLE_PID_CONTROL
 #define MOTOR_STOP_CHECK_THRESHOLD  2
