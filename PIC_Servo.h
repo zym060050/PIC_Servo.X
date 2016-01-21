@@ -153,7 +153,7 @@
 // Note: Only Low baudrate mode (BRGH = 0) is considered.
 // Rev2 set BRGH=1 & use baud 19200
 #define RS485_BAUDRATE          19200
-#define PACKET_LENGTH           7
+#define PACKET_LENGTH           9
 #define GLOBAL_ADDRESS          0xFF
 #define CRC_POLYNOMIAL          0x1021 // CRC-CCITT, can change to CRC-16
 #define CRC_INITIALE_VALUE      0x0000
@@ -181,14 +181,16 @@
 
 //CMD Structure
 /*
- * SOH      BORAD_ADDR      CMD     DATA1       DATA2       CRC
+ * SOH      BORAD_ADDR      CMD     DATA1       DATA2       DATA3       DATA4       CRC1       CRC2
  */
 #define CMD_POS_SOH         0
 #define CMD_POS_ADDR        1
 #define CMD_POS_CMD         2
 #define CMD_POS_DATA1       3
 #define CMD_POS_DATA2       4
-#define CMD_POS_CRC         5
+#define CMD_POS_DATA3       5
+#define CMD_POS_DATA4       6
+#define CMD_POS_CRC         7
 /**/
 #define OK      0
 #define ERROR   0xFF
@@ -204,6 +206,7 @@
 #define CMD_MOTOR_A_MOVE_TO         0x08
 #define CMD_MOTOR_B_MOVE_TO         0x09
 #define CMD_PID_OUTPUT_LIMIT        0x0A
+#define CMD_MOTOR_AB_MOVE_TO        0x0B
 #ifndef NEW_PCB_BOARD
 #define CMD_CONTROL_LED             0x1E
 #endif

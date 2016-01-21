@@ -278,6 +278,13 @@ static void Process_Uart_Rx_Buffer(void)
                             PID_OUTPUT_LIMIT = CMD_Buffer[CMD_POS_DATA1];
                         break;
                     #endif
+                    case CMD_MOTOR_AB_MOVE_TO:
+                        //TODO:
+                        /*Will Add feedback implementation later when the motor(A and B) moved to the target position.*/
+                        //Control motor:
+                        PIC_Motor_Move_To_Position(MOTOR_A, (CMD_Buffer[CMD_POS_DATA1] | (CMD_Buffer[CMD_POS_DATA2]<<8)));
+                        PIC_Motor_Move_To_Position(MOTOR_B, (CMD_Buffer[CMD_POS_DATA3] | (CMD_Buffer[CMD_POS_DATA4]<<8)));
+                        break;
                     #ifndef NEW_PCB_BOARD
                     case CMD_CONTROL_LED:
                         if(CMD_Buffer[CMD_POS_DATA1])
