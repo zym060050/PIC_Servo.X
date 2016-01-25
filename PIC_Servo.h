@@ -143,6 +143,8 @@
 #define EXT_INT1     PORTBbits.RB1
 #define EXT_INT0     PORTBbits.RB0
 #define VMOT_MON     PORTAbits.RA0
+#define MA_Status    PORTCbits.RC3
+#define MB_Status    PORTCbits.RC4
 #endif
 
 

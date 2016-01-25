@@ -32,6 +32,11 @@ void Initialize(void)
     PORTC = 0;
     TRISC = 0x81;
     
+    _delay(10);
+    
+    //PORTCbits.RC3 = 1;
+    //PORTCbits.RC4 = 1;
+    
     //set all analog pins as digital except for AN0  
     ADCON1 = 0x0E;
     

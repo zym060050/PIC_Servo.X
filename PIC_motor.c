@@ -215,6 +215,7 @@ void PIC_Motor_PID_Loop()
     if(MotorA_Position==motorATargetPos)
     {
         PIC_Motor_STOP(MOTOR_A);
+        MA_Status=1;
     }
     else
     {
@@ -241,6 +242,7 @@ void PIC_Motor_PID_Loop()
     if(MotorB_Position==motorBTargetPos)
     {
         PIC_Motor_STOP(MOTOR_B);
+        MB_Status=1;
     }
     else
     {
